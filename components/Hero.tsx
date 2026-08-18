@@ -44,14 +44,27 @@ export function Hero() {
         LETRAS COMO LADRILLOS
         ---------------------------------------------------------------
         Cada letra se lanza desde un lado (alternando izquierda/derecha),
-        cae girando y aterriza con un golpe: se aplasta un instante contra
-        el suelo y rebota hasta asentarse. Es lo que da la sensación de
-        peso; sin el aplastamiento parecen papeles, no ladrillos.
+        cae girando y CHOCA contra su sitio.
 
-        `transformOrigin` en la base (50% 100%) es lo que hace que el
-        aplastamiento salga desde abajo, como un bloque que encaja.
+        LA CURVA ES LO QUE DECIDE TODO. Con una curva `out` la letra
+        desacelera al final: frena en el aire y se posa suave, que es
+        justo lo contrario de un ladrillo lanzado. Va con `power2.in`,
+        que ACELERA hasta el impacto, igual que cualquier cosa que se
+        tira contra una pared.
+
+        Y el aplastamiento arranca en el instante exacto de la llegada
+        (posición 0.42, cuando acaba el vuelo). Si queda un hueco entre
+        medias, la letra se para primero y el golpe se lee como un
+        temblor tardío en vez de como un impacto.
+
+        `transformOrigin` en la base hace que el aplastamiento salga
+        desde abajo: la base queda clavada y es la parte de arriba la que
+        se hunde y rebota, como un bloque que encaja.
       */
       const letters = gsap.utils.toArray<HTMLElement>('.letter');
+
+      const FLIGHT = 0.42; // duración del vuelo
+      const HIT = 0.08; // duración del aplastamiento
 
       letters.forEach((letter, index) => {
         const fromLeft = index % 2 === 0;
@@ -63,32 +76,26 @@ export function Hero() {
 
         const brick = gsap
           .timeline()
-          // 1. Vuelo: entra rápido y frena de golpe al llegar a su sitio.
+          // 1. Vuelo: acelera hacia su sitio y llega a toda velocidad.
           .fromTo(
             letter,
-            { x: drift, y: -190, rotate: spin, scale: 1.18, autoAlpha: 0 },
-            {
-              x: 0,
-              y: 0,
-              rotate: 0,
-              scale: 1,
-              autoAlpha: 1,
-              duration: 0.72,
-              ease: 'power4.out',
-            },
+            { x: drift, y: -210, rotate: spin, scale: 1.12 },
+            { x: 0, y: 0, rotate: 0, scale: 1, duration: FLIGHT, ease: 'power2.in' },
+            0,
           )
-          // 2. Impacto: se achata contra la línea de base.
-          .to(letter, { scaleY: 0.84, scaleX: 1.09, duration: 0.09, ease: 'power2.in' })
-          // 3. Asentamiento: rebota un par de veces y se queda quieta.
-          .to(letter, {
-            scaleY: 1,
-            scaleX: 1,
-            duration: 0.6,
-            ease: 'elastic.out(1, 0.45)',
-          });
+          // Aparece enseguida, sin esperar a todo el vuelo.
+          .fromTo(letter, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.16, ease: 'none' }, 0)
+          // 2. Impacto: se achata de golpe, pegado al final del vuelo.
+          .to(letter, { scaleY: 0.78, scaleX: 1.14, duration: HIT, ease: 'power2.out' }, FLIGHT)
+          // 3. Asentamiento: la parte de arriba rebota y se queda quieta.
+          .to(
+            letter,
+            { scaleY: 1, scaleX: 1, duration: 0.62, ease: 'elastic.out(1.1, 0.38)' },
+            FLIGHT + HIT,
+          );
 
         // Los ladrillos se lanzan uno detrás de otro, no todos a la vez.
-        timeline.add(brick, 0.25 + index * 0.07);
+        timeline.add(brick, 0.25 + index * 0.065);
       });
 
       timeline
