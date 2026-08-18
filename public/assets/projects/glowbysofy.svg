@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000" role="img" aria-label="Vista previa de la landing page de Glow by Sofy">
+  <title>Glow by Sofy — Salón de belleza</title>
+
+  <defs>
+    <linearGradient id="gs-hero" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#1A1A1A"/>
+      <stop offset="1" stop-color="#0D0D0D"/>
+    </linearGradient>
+    <radialGradient id="gs-glow" cx="0.5" cy="0.45" r="0.6">
+      <stop offset="0" stop-color="#C9B99A" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#C9B99A" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gs-tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#C9B99A"/>
+      <stop offset="1" stop-color="#8C7355"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#F7F5F3"/>
+
+  <!-- ===== Hero oscuro ===== -->
+  <rect x="0" y="0" width="1600" height="672" fill="url(#gs-hero)"/>
+  <ellipse cx="800" cy="320" rx="720" ry="420" fill="url(#gs-glow)"/>
+
+  <!-- Barra de navegación -->
+  <text x="80" y="60" font-family="Georgia, 'Times New Roman', serif" font-size="21" font-style="italic" letter-spacing="2" fill="#C9B99A">Glow by Sofy</text>
+  <g font-family="'Segoe UI', Inter, sans-serif" font-size="14" letter-spacing="1.6" fill="#FFFFFF" opacity="0.72">
+    <text x="1010" y="59">SERVICIOS</text>
+    <text x="1148" y="59">GALERÍA</text>
+    <text x="1268" y="59">SOBRE MÍ</text>
+  </g>
+  <rect x="1400" y="34" width="120" height="38" rx="19" fill="none" stroke="#C9B99A" stroke-width="1.5"/>
+  <text x="1460" y="59" text-anchor="middle" font-family="'Segoe UI', Inter, sans-serif" font-size="13" letter-spacing="1.4" fill="#C9B99A">RESERVAR</text>
+
+  <!-- Titular centrado -->
+  <text x="800" y="214" text-anchor="middle" font-family="'Segoe UI', Inter, sans-serif" font-size="14" letter-spacing="6" fill="#C9B99A">SALÓN DE BELLEZA PREMIUM</text>
+
+  <text x="800" y="360" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="104" fill="#FFFFFF">El arte de</text>
+  <text x="800" y="482" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="104" font-style="italic" fill="#C9B99A">brillar.</text>
+
+  <line x1="740" y1="530" x2="860" y2="530" stroke="#C9B99A" stroke-width="1" opacity="0.6"/>
+
+  <rect x="656" y="562" width="288" height="60" rx="30" fill="#C9B99A"/>
+  <text x="800" y="599" text-anchor="middle" font-family="'Segoe UI', Inter, sans-serif" font-size="15" font-weight="600" letter-spacing="1.6" fill="#111111">RESERVAR CITA</text>
+
+  <!-- ===== Galería inferior ===== -->
+  <text x="80" y="756" font-family="Georgia, 'Times New Roman', serif" font-size="34" fill="#111111">Tratamientos</text>
+  <text x="1520" y="756" text-anchor="end" font-family="'Segoe UI', Inter, sans-serif" font-size="13" letter-spacing="2" fill="#8C7355">VER TODOS</text>
+
+  <g>
+    <rect x="80" y="792" width="452" height="150" rx="18" fill="url(#gs-tile)" opacity="0.9"/>
+    <circle cx="180" cy="852" r="34" fill="#FFFFFF" opacity="0.22"/>
+    <rect x="240" y="838" width="180" height="12" rx="6" fill="#FFFFFF" opacity="0.85"/>
+    <rect x="240" y="864" width="132" height="10" rx="5" fill="#FFFFFF" opacity="0.5"/>
+  </g>
+  <g>
+    <rect x="574" y="792" width="452" height="150" rx="18" fill="#111111"/>
+    <circle cx="674" cy="852" r="34" fill="#C9B99A" opacity="0.3"/>
+    <rect x="734" y="838" width="204" height="12" rx="6" fill="#FFFFFF" opacity="0.85"/>
+    <rect x="734" y="864" width="150" height="10" rx="5" fill="#FFFFFF" opacity="0.45"/>
+  </g>
+  <g>
+    <rect x="1068" y="792" width="452" height="150" rx="18" fill="#FFFFFF" stroke="#E2E0DE" stroke-width="2"/>
+    <circle cx="1168" cy="852" r="34" fill="#F7F5F3"/>
+    <rect x="1228" y="838" width="168" height="12" rx="6" fill="#111111" opacity="0.85"/>
+    <rect x="1228" y="864" width="120" height="10" rx="5" fill="#6B6B6B" opacity="0.6"/>
+  </g>
+</svg>

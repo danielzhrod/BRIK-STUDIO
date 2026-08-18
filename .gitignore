@@ -1,0 +1,32 @@
+# dependencias
+/node_modules
+/.pnp
+.pnp.js
+
+# build de Next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+
+# produccion
+/dist
+
+# variables de entorno (NUNCA subir claves a git)
+.env
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# sistema operativo
+.DS_Store
+Thumbs.db

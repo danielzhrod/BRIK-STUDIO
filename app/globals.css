@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ------------------------------------------------------------------
+     TEMA CLARO (por defecto en :root)
+     El sitio arranca en oscuro (ver ThemeProvider), pero definimos el
+     claro completo para que el toggle del navbar funcione de verdad.
+  ------------------------------------------------------------------ */
+  :root {
+    --background: 0 0% 100%; /* #ffffff */
+    --surface: 0 0% 97.3%; /* #f8f8f8 */
+    --surface-elevated: 0 0% 100%;
+    --foreground: 0 0% 5.9%; /* #0f0f0f */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 43%; /* gris legible sobre blanco */
+    --border: 220 13% 88%;
+    --ring: 217 91% 60%;
+    --primary: 217 91% 52%; /* azul con mas contraste sobre blanco */
+    --primary-solid: 217 91% 52%; /* sobre blanco ya contrasta 4.7:1 */
+    --primary-foreground: 0 0% 100%;
+    --whatsapp: 160 84% 33%;
+    --whatsapp-foreground: 0 0% 100%;
+    --shadow-color: 220 40% 30%;
+
+    --radius: 16px;
+  }
+
+  /* ------------------------------------------------------------------
+     TEMA OSCURO (tema principal del portafolio)
+     Colores exactos del brief de BRIK STUDIO.
+  ------------------------------------------------------------------ */
+  .dark {
+    --background: 0 0% 5.9%; /* #0f0f0f */
+    --surface: 0 0% 10.2%; /* #1a1a1a */
+    --surface-elevated: 0 0% 13%;
+    --foreground: 0 0% 100%; /* #ffffff */
+    --muted: 0 0% 14%;
+    --muted-foreground: 216 12% 84%; /* #d1d5db */
+    --border: 217 19% 27%; /* #374151 */
+    --ring: 217 91% 60%;
+
+    /*
+      DOS AZULES, A PROPOSITO:
+
+      --primary (#3b82f6, el del brief) se usa para TEXTO, iconos y bordes
+      sobre el fondo oscuro. Ahi contrasta 5.2:1 y se lee perfectamente.
+
+      --primary-solid (#2563eb) se usa solo para RELLENOS solidos con texto
+      blanco encima (botones). Con #3b82f6 el blanco solo contrastaria
+      3.7:1, por debajo del 4.5:1 que exige la WCAG AA para texto normal;
+      con este azul sube a 5.2:1. A simple vista son el mismo azul de marca.
+    */
+    --primary: 217 91% 60%; /* #3b82f6 */
+    --primary-solid: 221 83% 53%; /* #2563eb */
+    --primary-foreground: 0 0% 100%;
+    --whatsapp: 160 84% 39%; /* #10b981 */
+    --whatsapp-foreground: 0 0% 4%;
+    --shadow-color: 0 0% 0%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    /* Lenis controla el scroll en desktop; este fallback cubre el resto
+       (movil y usuarios con "reducir movimiento" activado). */
+    scroll-behavior: smooth;
+    /* Evita que el navbar fijo tape el titulo de la seccion al navegar. */
+    scroll-padding-top: 6rem;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-heading font-bold;
+  }
+
+  /* Foco visible y consistente para navegacion por teclado (accesibilidad). */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Cuando Lenis toma el control desactiva el smooth nativo para no duplicarlo. */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer components {
+  /* Contenedor estandar de seccion: mismo ritmo vertical en todo el sitio. */
+  .section-shell {
+    @apply container scroll-mt-24 py-20 md:py-28;
+  }
+
+  /* Etiqueta pequena en mayusculas que precede a cada titulo de seccion. */
+  .section-eyebrow {
+    @apply mb-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary;
+  }
+
+  .section-title {
+    @apply text-display-md text-foreground;
+  }
+
+  .section-subtitle {
+    @apply mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground;
+  }
+}
+
+@layer utilities {
+  /* Degradado sutil usado en el hero y en los bordes de las tarjetas. */
+  .text-gradient {
+    @apply bg-gradient-to-br from-foreground via-foreground to-primary bg-clip-text text-transparent;
+  }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, hsl(var(--border) / 0.35) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.35) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+}
+
+/* ------------------------------------------------------------------
+   ACCESIBILIDAD: si el sistema pide menos movimiento, apagamos todo.
+   GSAP y Framer Motion tambien lo respetan desde el codigo.
+------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
