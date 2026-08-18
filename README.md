@@ -90,6 +90,9 @@ No hay que tocar nada más. Next.js las optimiza y sirve en AVIF/WebP según el 
 | Efecto | Con qué | Dónde |
 | --- | --- | --- |
 | Cursor de dos capas + magnetismo | GSAP `quickTo` | `components/MagneticCursor.tsx` |
+| Blob que invierte lo que pisa | `mix-blend-mode: difference` | `components/MagneticCursor.tsx` |
+| Burbuja que envuelve el CTA | rAF + `getBoundingClientRect` por frame | `components/MagneticCursor.tsx` |
+| Letras lanzadas como ladrillos | GSAP timeline por letra | `components/Hero.tsx` |
 | Partículas que huyen del ratón | Canvas API pura | `components/ParticleField.tsx` |
 | Mockup con inclinación 3D y parallax | GSAP `matchMedia` + `scrub` | `components/BrowserMockup.tsx` |
 | Entrada letra a letra del hero | GSAP timeline | `components/Hero.tsx` + `SplitText.tsx` |
@@ -111,6 +114,22 @@ GSAP reescribe `transform` en cada frame y machacaría las clases de Tailwind.
 **El canvas se mide con `ResizeObserver`, no con `window.onresize`.** En el primer
 montaje `offsetWidth` puede ser 0 y el lienzo se quedaría vacío hasta que
 redimensionaras la ventana.
+
+**El `border-radius` orgánico del blob lo lleva CSS, nunca GSAP.** La sintaxis de
+ocho valores con barra (`60% 40% 55% 45% / 45% 55% 45% 55%`) rompe el parser de
+GSAP, que intenta interpolarla como números: aborta el efecto entero **sin lanzar
+ningún error por consola**, y el cursor simplemente no aparece. A GSAP solo se le
+pasan valores numéricos; la forma va en la animación CSS `blob-morph`.
+
+### Cómo funciona la inversión de color
+
+El blob es crema (`#efebe0`) con `mix-blend-mode: difference`, así que **invierte**
+lo que tiene debajo en lugar de taparlo. Un solo mecanismo cubre todos los casos:
+sobre el fondo oscuro se ve crema, sobre las letras blancas del hero las vuelve
+oscuras, y al envolver un botón blanco lo pone negro con el texto en crema.
+
+La excepción es `data-cursor="project"`: ahí se quita la mezcla y se pone azul
+opaco, porque el texto "VER →" tiene que leerse sobre la imagen del proyecto.
 
 ---
 

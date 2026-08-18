@@ -10,157 +10,260 @@ const MAGNETIC_RADIUS = 80;
 const MAGNETIC_STRENGTH = 0.4;
 /** Tope de desplazamiento para que nunca se despegue de su sitio. */
 const MAGNETIC_MAX = 15;
+/** Margen que la burbuja deja alrededor del botón que envuelve. */
+const BUBBLE_PADDING = 14;
+/** Crema del blob. Con `difference` es lo que invierte lo que hay debajo. */
+const BLOB_COLOR = '#efebe0';
+
+/** Forma de reposo. El latido entre formas lo lleva CSS (`blob-morph`). */
+const BLOB_REST_SHAPE = '60% 40% 55% 45% / 45% 55% 45% 55%';
 
 /**
  * =====================================================================
  * CURSOR MAGNÉTICO
  * ---------------------------------------------------------------------
  * Dos capas:
- *   · punto de 8px que sigue al ratón sin retardo
- *   · círculo de 40px que lo persigue con lag suave
+ *   · un punto pequeño que va exacto al ratón, sin retardo
+ *   · un blob crema que lo persigue con lag y va cambiando de forma
+ *
+ * EL TRUCO: el blob lleva `mix-blend-mode: difference`. Eso hace que
+ * invierta lo que tenga debajo en lugar de taparlo. Sobre el fondo
+ * oscuro se ve crema; al pasar por encima de las letras blancas del
+ * hero, las vuelve oscuras; sobre un botón blanco, lo pone negro.
+ * Un único mecanismo para todos los cambios de color.
  *
  * Estados, marcados con `data-cursor` en cualquier elemento:
- *   (nada)            círculo 40px, borde blanco tenue
- *   data-cursor="link"    círculo 80px azul, mezcla `difference`
- *   data-cursor="project" círculo 120px con el texto "VER →" dentro
- *   al pulsar         escala 0.8 y vuelve
+ *   (nada)                blob de 44px que muta de forma
+ *   data-cursor="link"    se convierte en una BURBUJA que envuelve el
+ *                         botón y se queda pegada a él (incluso mientras
+ *                         el magnetismo lo desplaza)
+ *   data-cursor="project" círculo azul de 120px con el texto "VER →"
  *
- * Efecto magnético: cualquier elemento con `data-magnetic` se desplaza
- * hacia el ratón cuando este se acerca, y vuelve con rebote elástico.
- *
- * Se desactiva por completo en táctiles y con "reducir movimiento".
+ * Se desactiva entero en táctiles y con "reducir movimiento".
  * =====================================================================
  */
 export function MagneticCursor() {
   const dotRef = useRef<HTMLDivElement>(null);
-  const circleRef = useRef<HTMLDivElement>(null);
+  const blobRef = useRef<HTMLDivElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    // --- ¿Debe activarse? ---
-    const isTablet = window.innerWidth < BP.desktop;
     if (!hasFinePointer() || prefersReducedMotion() || window.innerWidth < BP.mobile) return;
 
     const dot = dotRef.current;
-    const circle = circleRef.current;
+    const blob = blobRef.current;
     const label = labelRef.current;
-    if (!dot || !circle || !label) return;
+    if (!dot || !blob || !label) return;
 
-    // En tablet el cursor va más discreto (punto 6px, círculo 32px).
-    const baseSize = isTablet ? 32 : 40;
+    // En tablet, todo un poco más discreto.
+    const isTablet = window.innerWidth < BP.desktop;
+    const baseSize = isTablet ? 32 : 44;
     const dotSize = isTablet ? 6 : 8;
 
     /*
-      El centrado se hace con xPercent/yPercent, NO con `-translate-x-1/2`
-      de Tailwind. GSAP escribe la propiedad `transform` entera en cada
-      frame, así que machacaría cualquier clase de translate y el cursor
-      quedaría descolocado media anchura. xPercent sí se compone con x/y.
+      El centrado va con xPercent/yPercent, NO con las clases de translate
+      de Tailwind: GSAP reescribe `transform` entero en cada frame y las
+      machacaría, dejando el cursor descolocado media anchura.
     */
-    gsap.set(circle, { width: baseSize, height: baseSize, xPercent: -50, yPercent: -50 });
+    /*
+      OJO con qué le damos a GSAP.
+      `border-radius` orgánico y `mix-blend-mode` los ponemos con estilo
+      inline directo: GSAP no digiere la sintaxis de ocho valores con
+      barra y aborta el efecto entero sin avisar por consola.
+      A GSAP solo le pasamos valores numéricos, que es lo que sabe animar.
+    */
+    gsap.set(blob, { width: baseSize, height: baseSize, xPercent: -50, yPercent: -50 });
     gsap.set(dot, { width: dotSize, height: dotSize, xPercent: -50, yPercent: -50 });
 
-    // Oculta el cursor nativo SOLO ahora que sabemos que el nuestro funciona.
+    blob.style.backgroundColor = BLOB_COLOR;
+    blob.style.mixBlendMode = 'difference';
+    dot.style.backgroundColor = BLOB_COLOR;
+    dot.style.mixBlendMode = 'difference';
+
+    // Ocultamos el cursor nativo solo ahora que el nuestro ya funciona.
     document.documentElement.classList.add('has-custom-cursor');
-    gsap.set([dot, circle], { autoAlpha: 0 });
+    gsap.set([dot, blob], { autoAlpha: 0 });
 
     /*
-      `quickTo` crea una función de animación reutilizable y precompilada.
-      Es bastante más eficiente que llamar a gsap.to() en cada movimiento
-      del ratón, que ocurre decenas de veces por segundo.
+      `quickTo` precompila la animación una vez y luego solo actualiza el
+      valor. Mucho más barato que lanzar un gsap.to() nuevo en cada uno
+      de los cientos de eventos de movimiento por segundo.
     */
-    const circleX = gsap.quickTo(circle, 'x', { duration: 0.15, ease: 'power2.out' });
-    const circleY = gsap.quickTo(circle, 'y', { duration: 0.15, ease: 'power2.out' });
+    const blobX = gsap.quickTo(blob, 'x', { duration: 0.15, ease: 'power2.out' });
+    const blobY = gsap.quickTo(blob, 'y', { duration: 0.15, ease: 'power2.out' });
+
+    /**
+     * Congela el latido orgánico y fija una forma concreta.
+     * La clase `is-locked` corta la animación de CSS y activa una
+     * transición suave, para que el cambio de forma no dé un salto.
+     */
+    const setShape = (radius: string) => {
+      blob.classList.add('is-locked');
+      blob.style.borderRadius = radius;
+    };
+
+    /** Devuelve el blob a su forma que late. */
+    const restoreShape = () => {
+      blob.classList.remove('is-locked');
+      blob.style.borderRadius = BLOB_REST_SHAPE;
+    };
 
     let visible = false;
+    /** Botón al que la burbuja está enganchada ahora mismo. */
+    let locked: HTMLElement | null = null;
+    let lockFrame = 0;
+    const mouse = { x: 0, y: 0 };
+
+    /**
+     * Pega la burbuja al botón bloqueado.
+     * Hay que recalcular el rect en cada frame porque el magnetismo está
+     * moviendo el botón al mismo tiempo: si lo midiéramos una sola vez,
+     * la burbuja se quedaría atrás.
+     */
+    const followLocked = () => {
+      if (!locked) return;
+      const rect = locked.getBoundingClientRect();
+      const radius = parseFloat(getComputedStyle(locked).borderRadius) || 8;
+
+      gsap.set(blob, {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      });
+      gsap.to(blob, {
+        width: rect.width + BUBBLE_PADDING * 2,
+        height: rect.height + BUBBLE_PADDING * 2,
+        duration: 0.4,
+        ease: 'power3.out',
+        overwrite: 'auto',
+      });
+      setShape(`${radius + BUBBLE_PADDING}px`);
+
+      lockFrame = requestAnimationFrame(followLocked);
+    };
+
+    const releaseLock = () => {
+      if (!locked) return;
+      locked = null;
+      cancelAnimationFrame(lockFrame);
+      restoreShape();
+      gsap.to(blob, {
+        width: baseSize,
+        height: baseSize,
+        duration: 0.45,
+        ease: 'power3.out',
+        overwrite: 'auto',
+      });
+      // Vuelve a engancharse al ratón allí donde esté.
+      blobX(mouse.x);
+      blobY(mouse.y);
+    };
 
     const onMouseMove = (event: MouseEvent) => {
-      const { clientX: mx, clientY: my } = event;
+      mouse.x = event.clientX;
+      mouse.y = event.clientY;
 
       if (!visible) {
         visible = true;
-        gsap.to([dot, circle], { autoAlpha: 1, duration: 0.3 });
+        gsap.to([dot, blob], { autoAlpha: 1, duration: 0.3 });
       }
 
-      // El punto va exacto al ratón; el círculo lo persigue con retardo.
-      gsap.set(dot, { x: mx, y: my });
-      circleX(mx);
-      circleY(my);
+      // El punto va siempre exacto, esté la burbuja donde esté.
+      gsap.set(dot, { x: mouse.x, y: mouse.y });
 
-      // --- Atracción magnética de los botones cercanos ---
-      const magnets = document.querySelectorAll<HTMLElement>('[data-magnetic]');
-      magnets.forEach((magnet) => {
+      // Si la burbuja está enganchada a un botón, no sigue al ratón.
+      if (!locked) {
+        blobX(mouse.x);
+        blobY(mouse.y);
+      }
+
+      // --- Atracción magnética ---
+      document.querySelectorAll<HTMLElement>('[data-magnetic]').forEach((magnet) => {
         const rect = magnet.getBoundingClientRect();
         const cx = rect.left + rect.width / 2;
         const cy = rect.top + rect.height / 2;
-        const distance = Math.hypot(mx - cx, my - cy);
+        const distance = Math.hypot(mouse.x - cx, mouse.y - cy);
 
         if (distance < rect.width / 2 + MAGNETIC_RADIUS) {
-          // Dentro del radio: se desplaza hacia el ratón, con tope.
-          const dx = gsap.utils.clamp(-MAGNETIC_MAX, MAGNETIC_MAX, (mx - cx) * MAGNETIC_STRENGTH);
-          const dy = gsap.utils.clamp(-MAGNETIC_MAX, MAGNETIC_MAX, (my - cy) * MAGNETIC_STRENGTH);
+          const dx = gsap.utils.clamp(
+            -MAGNETIC_MAX,
+            MAGNETIC_MAX,
+            (mouse.x - cx) * MAGNETIC_STRENGTH,
+          );
+          const dy = gsap.utils.clamp(
+            -MAGNETIC_MAX,
+            MAGNETIC_MAX,
+            (mouse.y - cy) * MAGNETIC_STRENGTH,
+          );
           gsap.to(magnet, { x: dx, y: dy, duration: 0.3, ease: 'power2.out', overwrite: 'auto' });
         } else if (gsap.getProperty(magnet, 'x') !== 0) {
-          // Fuera del radio: vuelve a su sitio con un rebote elástico.
-          gsap.to(magnet, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)', overwrite: 'auto' });
+          gsap.to(magnet, {
+            x: 0,
+            y: 0,
+            duration: 0.5,
+            ease: 'elastic.out(1, 0.3)',
+            overwrite: 'auto',
+          });
         }
       });
     };
 
     // --- Cambios de estado según lo que haya bajo el ratón ---
-    const applyState = (state: string | null) => {
+    const onOver = (event: MouseEvent) => {
+      const target = (event.target as HTMLElement)?.closest?.<HTMLElement>('[data-cursor]');
+      const state = target?.getAttribute('data-cursor') ?? null;
+
+      if (state === 'link' && target) {
+        // Burbuja: se traga el botón y se queda ahí pegada.
+        if (locked !== target) {
+          locked = target;
+          cancelAnimationFrame(lockFrame);
+          followLocked();
+        }
+        gsap.to(label, { autoAlpha: 0, duration: 0.15 });
+        return;
+      }
+
+      releaseLock();
+
       if (state === 'project') {
-        gsap.to(circle, {
+        /*
+          Aquí sí quitamos el `difference` y ponemos azul opaco: el texto
+          "VER →" tiene que leerse, y con la mezcla invertida quedaría
+          ilegible sobre la imagen del proyecto.
+        */
+        setShape('50%');
+        blob.style.mixBlendMode = 'normal';
+        blob.style.backgroundColor = '#3b82f6';
+        gsap.to(blob, {
           width: 120,
           height: 120,
-          borderColor: 'rgba(255,255,255,0)',
-          backgroundColor: 'rgba(59,130,246,0.92)',
-          mixBlendMode: 'normal',
-          duration: 0.35,
+          duration: 0.4,
           ease: 'power3.out',
+          overwrite: 'auto',
         });
         gsap.to(label, { autoAlpha: 1, duration: 0.25 });
-      } else if (state === 'link') {
-        gsap.to(circle, {
-          width: 80,
-          height: 80,
-          borderColor: 'rgba(255,255,255,0)',
-          backgroundColor: '#3b82f6',
-          mixBlendMode: 'difference',
-          duration: 0.35,
-          ease: 'power3.out',
-        });
-        gsap.to(label, { autoAlpha: 0, duration: 0.15 });
       } else {
-        gsap.to(circle, {
+        restoreShape();
+        blob.style.mixBlendMode = 'difference';
+        blob.style.backgroundColor = BLOB_COLOR;
+        gsap.to(blob, {
           width: baseSize,
           height: baseSize,
-          borderColor: 'rgba(255,255,255,0.4)',
-          backgroundColor: 'rgba(0,0,0,0)',
-          mixBlendMode: 'normal',
-          duration: 0.35,
+          duration: 0.4,
           ease: 'power3.out',
+          overwrite: 'auto',
         });
         gsap.to(label, { autoAlpha: 0, duration: 0.15 });
       }
     };
 
-    /*
-      Delegación de eventos: un solo listener en el documento en lugar de
-      uno por elemento. Así funciona también con elementos que aparezcan
-      después, sin tener que re-registrar nada.
-    */
-    const onOver = (event: MouseEvent) => {
-      const target = (event.target as HTMLElement)?.closest?.('[data-cursor]');
-      applyState(target?.getAttribute('data-cursor') ?? null);
-    };
+    const onDown = () => gsap.to(blob, { scale: 0.8, duration: 0.15, ease: 'power2.out' });
+    const onUp = () => gsap.to(blob, { scale: 1, duration: 0.3, ease: 'power2.out' });
 
-    const onDown = () => gsap.to(circle, { scale: 0.8, duration: 0.15, ease: 'power2.out' });
-    const onUp = () => gsap.to(circle, { scale: 1, duration: 0.3, ease: 'power2.out' });
-
-    // Al salir de la ventana, escondemos el cursor personalizado.
     const onLeave = () => {
       visible = false;
-      gsap.to([dot, circle], { autoAlpha: 0, duration: 0.2 });
+      releaseLock();
+      gsap.to([dot, blob], { autoAlpha: 0, duration: 0.2 });
     };
 
     window.addEventListener('mousemove', onMouseMove, { passive: true });
@@ -168,6 +271,8 @@ export function MagneticCursor() {
     window.addEventListener('mousedown', onDown);
     window.addEventListener('mouseup', onUp);
     document.addEventListener('mouseleave', onLeave);
+    // Si haces scroll con la burbuja puesta, el botón se va: la soltamos.
+    window.addEventListener('scroll', releaseLock, { passive: true });
 
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
@@ -175,25 +280,26 @@ export function MagneticCursor() {
       window.removeEventListener('mousedown', onDown);
       window.removeEventListener('mouseup', onUp);
       document.removeEventListener('mouseleave', onLeave);
+      window.removeEventListener('scroll', releaseLock);
+      cancelAnimationFrame(lockFrame);
       document.documentElement.classList.remove('has-custom-cursor');
-      // Devuelve a su sitio cualquier botón que quedara desplazado.
       gsap.set('[data-magnetic]', { x: 0, y: 0 });
     };
   }, []);
 
   return (
     <>
-      {/* Punto: sigue al ratón sin retardo */}
+      {/* Punto: va exacto al ratón */}
       <div
         ref={dotRef}
         aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 z-[9999] hidden rounded-full bg-white md:block"
+        className="pointer-events-none fixed left-0 top-0 z-[9999] hidden rounded-full md:block"
       />
-      {/* Círculo: persigue con lag y cambia de tamaño según el contexto */}
+      {/* Blob: persigue con lag, muta de forma e invierte lo que pisa */}
       <div
-        ref={circleRef}
+        ref={blobRef}
         aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 z-[9998] hidden items-center justify-center rounded-full border border-white/40 md:flex"
+        className="cursor-blob pointer-events-none fixed left-0 top-0 z-[9998] hidden items-center justify-center md:flex"
       >
         <span
           ref={labelRef}

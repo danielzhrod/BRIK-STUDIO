@@ -39,38 +39,85 @@ export function Hero() {
     const ctx = gsap.context(() => {
       const timeline = gsap.timeline({ defaults: { ease: MOTION.easeStrong } });
 
+      /*
+        ---------------------------------------------------------------
+        LETRAS COMO LADRILLOS
+        ---------------------------------------------------------------
+        Cada letra se lanza desde un lado (alternando izquierda/derecha),
+        cae girando y aterriza con un golpe: se aplasta un instante contra
+        el suelo y rebota hasta asentarse. Es lo que da la sensación de
+        peso; sin el aplastamiento parecen papeles, no ladrillos.
+
+        `transformOrigin` en la base (50% 100%) es lo que hace que el
+        aplastamiento salga desde abajo, como un bloque que encaja.
+      */
+      const letters = gsap.utils.toArray<HTMLElement>('.letter');
+
+      letters.forEach((letter, index) => {
+        const fromLeft = index % 2 === 0;
+        // Pequeña variación por letra para que no parezcan clonadas.
+        const spin = gsap.utils.random(38, 72) * (fromLeft ? -1 : 1);
+        const drift = gsap.utils.random(150, 230) * (fromLeft ? -1 : 1);
+
+        gsap.set(letter, { transformOrigin: '50% 100%' });
+
+        const brick = gsap
+          .timeline()
+          // 1. Vuelo: entra rápido y frena de golpe al llegar a su sitio.
+          .fromTo(
+            letter,
+            { x: drift, y: -190, rotate: spin, scale: 1.18, autoAlpha: 0 },
+            {
+              x: 0,
+              y: 0,
+              rotate: 0,
+              scale: 1,
+              autoAlpha: 1,
+              duration: 0.72,
+              ease: 'power4.out',
+            },
+          )
+          // 2. Impacto: se achata contra la línea de base.
+          .to(letter, { scaleY: 0.84, scaleX: 1.09, duration: 0.09, ease: 'power2.in' })
+          // 3. Asentamiento: rebota un par de veces y se queda quieta.
+          .to(letter, {
+            scaleY: 1,
+            scaleX: 1,
+            duration: 0.6,
+            ease: 'elastic.out(1, 0.45)',
+          });
+
+        // Los ladrillos se lanzan uno detrás de otro, no todos a la vez.
+        timeline.add(brick, 0.25 + index * 0.07);
+      });
+
       timeline
-        // Las letras caen desde arriba girando sobre su eje X.
-        .fromTo(
-          '.letter',
-          { y: 120, autoAlpha: 0, rotateX: -90 },
-          { y: 0, autoAlpha: 1, rotateX: 0, duration: 0.8, stagger: MOTION.stagger },
-          0.3,
-        )
         // El resto entra por debajo, escalonado.
+        // Los tiempos van tras el último ladrillo (~1,6s) para que la
+        // pared se monte sin que nada le robe la atención.
         .fromTo(
           '[data-anim="tagline"]',
           { y: 30, autoAlpha: 0 },
           { y: 0, autoAlpha: 1, duration: 0.8 },
-          0.7,
+          1.15,
         )
         .fromTo(
           '[data-anim="cta"]',
           { y: 30, autoAlpha: 0 },
           { y: 0, autoAlpha: 1, duration: 0.8 },
-          0.9,
+          1.35,
         )
         .fromTo(
           '[data-anim="mockup"]',
           { y: 60, autoAlpha: 0 },
           { y: 0, autoAlpha: 1, duration: 1.2 },
-          0.5,
+          0.6,
         )
         .fromTo(
           '[data-anim="scroll"]',
           { autoAlpha: 0 },
           { autoAlpha: 1, duration: 0.6 },
-          1.2,
+          1.7,
         );
     }, section);
 

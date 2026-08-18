@@ -97,6 +97,39 @@
     }
   }
 
+  /*
+    Blob del cursor.
+    El `border-radius` orgánico (ocho valores con barra) lo lleva CSS, NO
+    GSAP: su parser intenta interpolar esa sintaxis como números y revienta
+    silenciosamente, dejando el cursor sin inicializar. CSS la anima nativa.
+  */
+  @keyframes blob-morph {
+    0%,
+    100% {
+      border-radius: 60% 40% 55% 45% / 45% 55% 45% 55%;
+    }
+    25% {
+      border-radius: 45% 55% 40% 60% / 55% 45% 60% 40%;
+    }
+    50% {
+      border-radius: 55% 45% 60% 40% / 40% 60% 45% 55%;
+    }
+    75% {
+      border-radius: 50% 50% 45% 55% / 55% 45% 50% 50%;
+    }
+  }
+
+  .cursor-blob {
+    border-radius: 60% 40% 55% 45% / 45% 55% 45% 55%;
+    animation: blob-morph 9s ease-in-out infinite;
+  }
+
+  /* Al envolver un botón deja de latir y adopta su forma. */
+  .cursor-blob.is-locked {
+    animation: none;
+    transition: border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
   /* Perspectiva para el mockup 3D del hero. */
   .perspective {
     perspective: 1200px;
