@@ -14,7 +14,6 @@ const MAGNETIC_MAX = 15;
 const BUBBLE_PADDING = 14;
 /** Crema del blob. Con `difference` es lo que invierte lo que hay debajo. */
 const BLOB_COLOR = '#efebe0';
-
 /** Forma de reposo. El latido entre formas lo lleva CSS (`blob-morph`). */
 const BLOB_REST_SHAPE = '60% 40% 55% 45% / 45% 55% 45% 55%';
 
@@ -22,21 +21,18 @@ const BLOB_REST_SHAPE = '60% 40% 55% 45% / 45% 55% 45% 55%';
  * =====================================================================
  * CURSOR MAGNÉTICO
  * ---------------------------------------------------------------------
- * Dos capas:
- *   · un punto pequeño que va exacto al ratón, sin retardo
- *   · un blob crema que lo persigue con lag y va cambiando de forma
+ * Dos capas: un punto que va exacto al ratón y un blob crema que lo
+ * persigue con lag y va cambiando de forma.
  *
- * EL TRUCO: el blob lleva `mix-blend-mode: difference`. Eso hace que
- * invierta lo que tenga debajo en lugar de taparlo. Sobre el fondo
- * oscuro se ve crema; al pasar por encima de las letras blancas del
- * hero, las vuelve oscuras; sobre un botón blanco, lo pone negro.
- * Un único mecanismo para todos los cambios de color.
+ * EL TRUCO: el blob lleva `mix-blend-mode: difference`. Invierte lo que
+ * tiene debajo en lugar de taparlo. Sobre el fondo oscuro se ve crema;
+ * sobre las letras blancas del hero, las vuelve oscuras; sobre un botón
+ * blanco, lo pone negro. Un solo mecanismo para todos los casos.
  *
- * Estados, marcados con `data-cursor` en cualquier elemento:
+ * Estados, con `data-cursor` en cualquier elemento:
  *   (nada)                blob de 44px que muta de forma
- *   data-cursor="link"    se convierte en una BURBUJA que envuelve el
- *                         botón y se queda pegada a él (incluso mientras
- *                         el magnetismo lo desplaza)
+ *   data-cursor="link"    BURBUJA que envuelve el botón y se queda
+ *                         pegada a él mientras el magnetismo lo mueve
  *   data-cursor="project" círculo azul de 120px con el texto "VER →"
  *
  * Se desactiva entero en táctiles y con "reducir movimiento".
@@ -61,16 +57,12 @@ export function MagneticCursor() {
     const dotSize = isTablet ? 6 : 8;
 
     /*
-      El centrado va con xPercent/yPercent, NO con las clases de translate
-      de Tailwind: GSAP reescribe `transform` entero en cada frame y las
-      machacaría, dejando el cursor descolocado media anchura.
-    */
-    /*
       OJO con qué le damos a GSAP.
-      `border-radius` orgánico y `mix-blend-mode` los ponemos con estilo
-      inline directo: GSAP no digiere la sintaxis de ocho valores con
-      barra y aborta el efecto entero sin avisar por consola.
-      A GSAP solo le pasamos valores numéricos, que es lo que sabe animar.
+      El centrado va con xPercent/yPercent, NO con las clases translate de
+      Tailwind: GSAP reescribe `transform` entero en cada frame y las
+      machacaría. Y el `border-radius` orgánico y `mix-blend-mode` van por
+      estilo inline, porque GSAP no digiere la sintaxis de ocho valores
+      con barra y aborta el efecto entero sin avisar por consola.
     */
     gsap.set(blob, { width: baseSize, height: baseSize, xPercent: -50, yPercent: -50 });
     gsap.set(dot, { width: dotSize, height: dotSize, xPercent: -50, yPercent: -50 });
@@ -92,11 +84,7 @@ export function MagneticCursor() {
     const blobX = gsap.quickTo(blob, 'x', { duration: 0.15, ease: 'power2.out' });
     const blobY = gsap.quickTo(blob, 'y', { duration: 0.15, ease: 'power2.out' });
 
-    /**
-     * Congela el latido orgánico y fija una forma concreta.
-     * La clase `is-locked` corta la animación de CSS y activa una
-     * transición suave, para que el cambio de forma no dé un salto.
-     */
+    /** Congela el latido de CSS y fija una forma concreta. */
     const setShape = (radius: string) => {
       blob.classList.add('is-locked');
       blob.style.borderRadius = radius;
@@ -112,23 +100,26 @@ export function MagneticCursor() {
     /** Botón al que la burbuja está enganchada ahora mismo. */
     let locked: HTMLElement | null = null;
     let lockFrame = 0;
+    /** Último tamaño al que se animó, para no re-animar en balde. */
+    let lockedW = 0;
+    let lockedH = 0;
     const mouse = { x: 0, y: 0 };
 
     /**
-     * Pega la burbuja al botón bloqueado.
-     * Hay que recalcular el rect en cada frame porque el magnetismo está
-     * moviendo el botón al mismo tiempo: si lo midiéramos una sola vez,
-     * la burbuja se quedaría atrás.
+     * Lanza el crecimiento de la burbuja hasta envolver el botón.
+     *
+     * IMPORTANTE: se llama UNA VEZ por enganche, nunca desde el bucle de
+     * animación. Crear el tween en cada frame lo reiniciaba antes de que
+     * pudiera completarse —avanzaba un 4% y volvía a empezar—, así que la
+     * burbuja se quedaba del tamaño del blob en reposo. Ese era el fallo
+     * intermitente: solo "funcionaba" si dejabas el ratón quieto el rato
+     * suficiente como para que fuera convergiendo poco a poco.
      */
-    const followLocked = () => {
-      if (!locked) return;
-      const rect = locked.getBoundingClientRect();
-      const radius = parseFloat(getComputedStyle(locked).borderRadius) || 8;
+    const growTo = (rect: DOMRect, el: HTMLElement) => {
+      lockedW = rect.width;
+      lockedH = rect.height;
+      const radius = parseFloat(getComputedStyle(el).borderRadius) || 8;
 
-      gsap.set(blob, {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
-      });
       gsap.to(blob, {
         width: rect.width + BUBBLE_PADDING * 2,
         height: rect.height + BUBBLE_PADDING * 2,
@@ -137,13 +128,43 @@ export function MagneticCursor() {
         overwrite: 'auto',
       });
       setShape(`${radius + BUBBLE_PADDING}px`);
+    };
+
+    /**
+     * Bucle que mantiene la burbuja pegada al botón.
+     * Solo COLOCA: ni un tween aquí dentro. Hay que releer el rect en cada
+     * frame porque el magnetismo está moviendo el botón a la vez.
+     */
+    const followLocked = () => {
+      if (!locked) return;
+      const rect = locked.getBoundingClientRect();
+
+      gsap.set(blob, {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      });
+
+      // Solo si el botón cambia de tamaño de verdad (resize, otro texto).
+      if (Math.abs(rect.width - lockedW) > 1 || Math.abs(rect.height - lockedH) > 1) {
+        growTo(rect, locked);
+      }
 
       lockFrame = requestAnimationFrame(followLocked);
+    };
+
+    /** Engancha la burbuja a un botón. */
+    const lockTo = (el: HTMLElement) => {
+      locked = el;
+      cancelAnimationFrame(lockFrame);
+      growTo(el.getBoundingClientRect(), el);
+      followLocked();
     };
 
     const releaseLock = () => {
       if (!locked) return;
       locked = null;
+      lockedW = 0;
+      lockedH = 0;
       cancelAnimationFrame(lockFrame);
       restoreShape();
       gsap.to(blob, {
@@ -209,16 +230,12 @@ export function MagneticCursor() {
 
     // --- Cambios de estado según lo que haya bajo el ratón ---
     const onOver = (event: MouseEvent) => {
-      const target = (event.target as HTMLElement)?.closest?.<HTMLElement>('[data-cursor]');
+      const target = (event.target as HTMLElement)?.closest?.('[data-cursor]') as HTMLElement | null;
       const state = target?.getAttribute('data-cursor') ?? null;
 
       if (state === 'link' && target) {
-        // Burbuja: se traga el botón y se queda ahí pegada.
-        if (locked !== target) {
-          locked = target;
-          cancelAnimationFrame(lockFrame);
-          followLocked();
-        }
+        // Ya enganchada a este mismo botón: no reiniciar nada.
+        if (locked !== target) lockTo(target);
         gsap.to(label, { autoAlpha: 0, duration: 0.15 });
         return;
       }

@@ -2,8 +2,9 @@
 
 > Webs + Tiendas online
 
-Sitio de una página con Next.js 14, TypeScript, Tailwind, GSAP, Framer Motion y Lenis.
-Tema oscuro, cursor magnético, partículas en canvas y animaciones ligadas al scroll.
+Sitio de una página con Next.js 14, TypeScript, Tailwind, GSAP y Lenis. Todo el
+portafolio se presenta **dentro de una ventana de navegador** que crece con el
+scroll y va pasando de una etapa a otra.
 
 **En producción:** https://brik-studio.vercel.app
 
@@ -19,7 +20,7 @@ npm install
 npm run dev
 ```
 
-Abre **http://localhost:3000**. No hace falta configurar nada: no hay variables de entorno.
+Abre **http://localhost:3000**. No hay variables de entorno que configurar.
 
 | Comando | Qué hace |
 | --- | --- |
@@ -28,8 +29,6 @@ Abre **http://localhost:3000**. No hace falta configurar nada: no hay variables 
 | `npm run start` | Sirve la compilación (requiere `build`) |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | Tipos de TypeScript |
-
----
 
 ## Publicar cambios
 
@@ -41,39 +40,53 @@ git add -A && git commit -m "describe el cambio" && git push
 
 ---
 
+## Cómo está montada la página
+
+Una única sección muy alta (`820vh`) con un panel pegajoso dentro. El scroll conduce
+todo el recorrido:
+
+```
+Showcase.tsx                      la sección alta
+ └─ panel pegajoso                sticky top-0 h-screen
+     ├─ titular BRIK STUDIO       se desvanece hacia arriba
+     └─ MacFrame                  crece hasta llenar la pantalla
+         ├─ 1. Proyectos
+         ├─ 2. FisioSuab
+         ├─ 3. Glow by Sofy
+         ├─ 4. Servicios
+         ├─ 5. El estudio
+         └─ 6. Contacto
+```
+
+Los tiempos de cada etapa están en la constante `MARKS` de `Showcase.tsx`, todos
+juntos para poder ajustar el ritmo sin rastrear varios archivos.
+
+**En móvil no se ancla nada.** El panel deja de ser pegajoso, la sección pierde su
+altura enorme y las etapas se apilan en flujo normal dentro del marco. El scroll
+anclado en móvil secuestra el gesto del dedo y marea.
+
+---
+
 ## Personalizar
 
 Todo el contenido vive en `data/`. No hace falta tocar los componentes.
 
-### `data/config.ts` — datos del negocio
+- **`data/config.ts`** — nombre, WhatsApp, email, enlaces del menú.
+  `whatsappNumber` va solo con dígitos: es lo que exige la API de wa.me.
+- **`data/projects.ts`** — proyectos. Copia un objeto y cambia los valores.
+- **`data/services.ts`** — servicios. `icon` acepta `'web'` o `'shop'`; para añadir
+  iconos amplía el `ICONS` del principio de `components/stages.tsx`.
 
-```ts
-whatsapp: '+34 681 066 861',
-whatsappNumber: '34681066861', // solo dígitos: lo exige la API de wa.me
-email: '',                     // al rellenarlo aparece solo en Contacto
-```
+Si añades un proyecto, recuerda añadir también su etapa en `Showcase.tsx` y una
+marca más en `MARKS`.
 
-### `data/projects.ts` — proyectos
+### Cambiar las imágenes de los proyectos
 
-Copia un objeto del array y cambia los valores. La galería y el contador
-`01 / 02` se adaptan solos al número de proyectos.
+Las vistas previas actuales (`public/assets/projects/*.svg`) son recreaciones
+vectoriales de cada web. Para poner capturas reales:
 
-### `data/services.ts` — servicios
-
-Mismo sistema. `icon` acepta `'web'` o `'shop'`; para añadir iconos nuevos amplía
-el `ICONS` del principio de `components/Services.tsx`.
-
----
-
-## Cambiar las imágenes de los proyectos
-
-Las vistas previas actuales (`public/assets/projects/*.svg`) son **recreaciones
-vectoriales** de cada web, hechas con sus colores y textos reales.
-
-Para poner capturas de pantalla auténticas:
-
-1. Haz la captura a **1600 × 1000 px** (relación 16:10).
-2. Guárdala en `public/assets/projects/` como `.jpg` o `.webp`.
+1. Captura a **1600 × 1000 px** (relación 16:10).
+2. Guárdala en `public/assets/projects/`.
 3. Cambia la extensión en `data/projects.ts`:
 
 ```diff
@@ -81,68 +94,56 @@ Para poner capturas de pantalla auténticas:
 + image: '/assets/projects/fisiosuab.jpg',
 ```
 
-No hay que tocar nada más. Next.js las optimiza y sirve en AVIF/WebP según el navegador.
-
 ---
 
-## Cómo funcionan las animaciones
+## Las animaciones
 
 | Efecto | Con qué | Dónde |
 | --- | --- | --- |
-| Cursor de dos capas + magnetismo | GSAP `quickTo` | `components/MagneticCursor.tsx` |
-| Blob que invierte lo que pisa | `mix-blend-mode: difference` | `components/MagneticCursor.tsx` |
-| Burbuja que envuelve el CTA | rAF + `getBoundingClientRect` por frame | `components/MagneticCursor.tsx` |
-| Letras lanzadas como ladrillos | GSAP timeline por letra | `components/Hero.tsx` |
-| Partículas que huyen del ratón | Canvas API pura | `components/ParticleField.tsx` |
-| Mockup con inclinación 3D y parallax | GSAP `matchMedia` + `scrub` | `components/BrowserMockup.tsx` |
-| Entrada letra a letra del hero | GSAP timeline | `components/Hero.tsx` + `SplitText.tsx` |
-| Entradas laterales al hacer scroll | GSAP `ScrollTrigger` | `Projects.tsx`, `Services.tsx` |
-| Revelado palabra a palabra | `ScrollTrigger` con `scrub` | `components/About.tsx` |
-| Zoom de imagen al pasar el ratón | Framer Motion | `components/Projects.tsx` |
-| Scroll suave | Lenis sincronizado con GSAP | `components/SmoothScroll.tsx` |
+| Letras lanzadas como ladrillos | GSAP, una línea por letra | `Showcase.tsx` |
+| Giro de dos vueltas de la ventana | GSAP `rotateY: 720` | `Showcase.tsx` |
+| Crecimiento y cambio de etapa | GSAP `ScrollTrigger` con `scrub` | `Showcase.tsx` |
+| Revelado palabra a palabra | El mismo `scrub`, dentro de su tramo | `Showcase.tsx` |
+| Cursor de dos capas + magnetismo | GSAP `quickTo` | `MagneticCursor.tsx` |
+| Blob que invierte lo que pisa | `mix-blend-mode: difference` | `MagneticCursor.tsx` |
+| Burbuja que envuelve el CTA | rAF + `getBoundingClientRect` | `MagneticCursor.tsx` |
+| Partículas que huyen del ratón | Canvas puro | `ParticleField.tsx` |
+| Scroll suave | Lenis sincronizado con GSAP | `SmoothScroll.tsx` |
 
-### Tres decisiones que conviene no deshacer
+### Cinco trampas que ya costaron caras
 
-**GSAP y Framer Motion nunca animan el mismo elemento.** Ambos escriben la
-propiedad `transform`, así que compartir elemento produce saltos. En las tarjetas
-de proyecto hay tres capas a propósito: GSAP mueve el contenedor exterior, el
-enlace intermedio recorta, y Framer Motion hace el zoom en el interior.
+**Nunca animes el mismo elemento con dos sistemas.** La ventana lleva dos capas: la
+exterior la mueve el scroll y la interior la carga. Si compartieran nodo se pisarían
+la propiedad `transform`.
 
-**El cursor se centra con `xPercent`/`yPercent`, no con `-translate-x-1/2`.**
-GSAP reescribe `transform` en cada frame y machacaría las clases de Tailwind.
+**Nunca encadenes el scroll al final de una animación de entrada.** Construir la
+línea del scroll en el `onComplete` del giro dejaba la página muerta si el giro no
+terminaba — por ejemplo al abrir la web en una pestaña en segundo plano, donde el
+navegador congela los fotogramas.
 
-**El canvas se mide con `ResizeObserver`, no con `window.onresize`.** En el primer
-montaje `offsetWidth` puede ser 0 y el lienzo se quedaría vacío hasta que
-redimensionaras la ventana.
+**Un `fromTo` colocado a mitad de una línea no aplica su estado inicial hasta que la
+reproducción llega ahí.** Para lo que deba arrancar oculto, un `gsap.set()` aparte.
 
-**El `border-radius` orgánico del blob lo lleva CSS, nunca GSAP.** La sintaxis de
-ocho valores con barra (`60% 40% 55% 45% / 45% 55% 45% 55%`) rompe el parser de
-GSAP, que intenta interpolarla como números: aborta el efecto entero **sin lanzar
-ningún error por consola**, y el cursor simplemente no aparece. A GSAP solo se le
-pasan valores numéricos; la forma va en la animación CSS `blob-morph`.
+**El `border-radius` orgánico de ocho valores con barra rompe el parser de GSAP.**
+Aborta el efecto entero **sin lanzar ningún error por consola**. La forma del blob va
+en la animación CSS `blob-morph`; a GSAP solo se le pasan números.
 
-### Cómo funciona la inversión de color
-
-El blob es crema (`#efebe0`) con `mix-blend-mode: difference`, así que **invierte**
-lo que tiene debajo en lugar de taparlo. Un solo mecanismo cubre todos los casos:
-sobre el fondo oscuro se ve crema, sobre las letras blancas del hero las vuelve
-oscuras, y al envolver un botón blanco lo pone negro con el texto en crema.
-
-La excepción es `data-cursor="project"`: ahí se quita la mezcla y se pone azul
-opaco, porque el texto "VER →" tiene que leerse sobre la imagen del proyecto.
+**Ningún `gsap.to()` dentro de un bucle de `requestAnimationFrame`.** Crear el tween
+en cada fotograma lo reinicia antes de que pueda completarse: avanza un 4% y vuelve a
+empezar. Era la causa de que la burbuja del cursor fallara de forma intermitente.
 
 ---
 
 ## Accesibilidad
 
-- El cursor personalizado solo se activa con ratón real (`pointer: fine`) y
-  pantalla ≥768px. La clase que oculta el cursor nativo se añade **desde JS**, así
-  que si el script falla nunca te quedas sin puntero.
-- `prefers-reduced-motion` respetado en todo: sin animaciones, sin parallax, sin
-  cursor personalizado y sin scroll interceptado.
+- El cursor personalizado solo se activa con ratón real (`pointer: fine`) y pantalla
+  ≥768px. La clase que oculta el cursor nativo se añade **desde JS**, así que si el
+  script falla nunca te quedas sin puntero.
+- `prefers-reduced-motion` respetado: sin animaciones, sin cursor personalizado, sin
+  recorrido anclado y sin scroll interceptado.
 - `<noscript>` que revela todo el contenido si no hay JavaScript.
-- El texto troceado en letras lleva el original en `sr-only`: un lector de
-  pantalla lee "BRIK", no "B-R-I-K".
+- El texto troceado en letras lleva el original en `sr-only`: un lector de pantalla
+  lee "BRIK", no "B-R-I-K".
 - Enlace "Saltar al contenido" y foco visible en todos los interactivos.
 
 ---
@@ -151,16 +152,16 @@ opaco, porque el texto "VER →" tiene que leerse sobre la imagen del proyecto.
 
 ```
 app/
-  globals.css      Variables, cursor, utilidades
-  layout.tsx       Fuente, metadatos, navbar, pie, noscript
-  page.tsx         Ensambla las secciones
+  globals.css      Variables, cursor, clase .stage
+  layout.tsx       Fuente, metadatos, fondo, navbar, pie
+  page.tsx         Monta <Showcase />
 components/
-  MagneticCursor   Cursor de dos capas + magnetismo
-  ParticleField    Canvas de partículas
-  BrowserMockup    Navegador con inclinación 3D
-  SplitText        Trocea texto en letras animables
-  Hero / Projects / Services / About / Contact
-  Navigation / Footer / Logo / SmoothScroll
+  Showcase.tsx     El recorrido completo y toda la lógica de scroll
+  stages.tsx       Las seis pantallas que van dentro de la ventana
+  MacFrame.tsx     El marco de navegador reutilizable
+  SiteBackground   Capa fija: degradado + partículas
+  MagneticCursor · ParticleField · SplitText
+  Navigation · Footer · Logo · SmoothScroll
 data/              ← config, projects, services
 lib/               gsap (registro + constantes), utils (cn)
 public/assets/     Logo e imágenes de proyectos

@@ -7,6 +7,7 @@ import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { SmoothScroll } from '@/components/SmoothScroll';
 import { MagneticCursor } from '@/components/MagneticCursor';
+import { SiteBackground } from '@/components/SiteBackground';
 
 /**
  * Inter en toda la interfaz, del peso 400 al 900 (el hero usa el 900).
@@ -83,6 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Saltar al contenido
         </a>
 
+        <SiteBackground />
         <MagneticCursor />
         <SmoothScroll />
         <Navigation />

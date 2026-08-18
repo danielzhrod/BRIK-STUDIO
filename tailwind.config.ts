@@ -15,8 +15,7 @@ const config: Config = {
     extend: {
       colors: {
         background: {
-          primary: '#0a0a0a', // fondo base de casi todo el sitio
-          secondary: '#111111', // rompe el ritmo (sección "Nosotros")
+          primary: '#0a0a0a', // base del fondo fijo del sitio
           card: '#141414',
           border: '#1f2937',
         },

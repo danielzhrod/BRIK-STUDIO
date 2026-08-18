@@ -1,22 +1,11 @@
-import { Hero } from '@/components/Hero';
-import { Projects } from '@/components/Projects';
-import { Services } from '@/components/Services';
-import { About } from '@/components/About';
-import { Contact } from '@/components/Contact';
+import { Showcase } from '@/components/Showcase';
 
 /**
  * Home de una sola página.
- * El orden es intencional: gancho (Hero) → prueba (Proyectos) →
- * oferta (Servicios) → confianza (Estudio) → acción (Contacto).
+ *
+ * Todo el recorrido vive dentro de <Showcase>: el titular del hero y,
+ * dentro de la ventana de navegador, las seis etapas del portafolio.
  */
 export default function HomePage() {
-  return (
-    <>
-      <Hero />
-      <Projects />
-      <Services />
-      <About />
-      <Contact />
-    </>
-  );
+  return <Showcase />;
 }

@@ -42,10 +42,3 @@ export const NAV_LINKS = [
   { label: 'Estudio', href: '#estudio' },
   { label: 'Contacto', href: '#contacto' },
 ] as const;
-
-/** Cifras del bloque "Estudio". `value` se anima con un contador. */
-export const STATS = [
-  { value: 2, suffix: '', label: 'Proyectos publicados' },
-  { value: 100, suffix: '%', label: 'Diseño a medida' },
-  { value: 2, prefix: '<', suffix: 's', label: 'Tiempo de carga' },
-] as const;
