@@ -3,10 +3,11 @@
 import { useEffect, useLayoutEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
 
 /** Registro único del plugin. GSAP avisa por consola si se registra dos veces. */
 if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 }
 
 /**
@@ -47,4 +48,4 @@ export function hasFinePointer(): boolean {
   return window.matchMedia('(pointer: fine)').matches;
 }
 
-export { gsap, ScrollTrigger };
+export { gsap, ScrollTrigger, MotionPathPlugin };

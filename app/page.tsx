@@ -1,11 +1,27 @@
-import { Showcase } from '@/components/Showcase';
+import { FloatingWindow } from '@/components/FloatingWindow';
+import { Hero } from '@/components/Hero';
+import { Projects } from '@/components/Projects';
+import { Services } from '@/components/Services';
+import { About } from '@/components/About';
+import { Contact } from '@/components/Contact';
 
 /**
  * Home de una sola página.
  *
- * Todo el recorrido vive dentro de <Showcase>: el titular del hero y,
- * dentro de la ventana de navegador, las seis etapas del portafolio.
+ * Las secciones son de altura normal y scrollean con normalidad, con su
+ * contenido en la mitad izquierda. La ventana de navegador vive aparte,
+ * en una capa fija sobre la mitad derecha, y va describiendo arcos entre
+ * sección y sección sin desmontarse nunca.
  */
 export default function HomePage() {
-  return <Showcase />;
+  return (
+    <>
+      <FloatingWindow />
+      <Hero />
+      <Projects />
+      <Services />
+      <About />
+      <Contact />
+    </>
+  );
 }

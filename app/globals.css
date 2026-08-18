@@ -64,17 +64,6 @@
   }
 
   /*
-    ETAPA dentro de la ventana de navegador.
-    En escritorio todas ocupan el mismo hueco (`absolute inset-0`) y el
-    scroll decide cuál se ve. En móvil pasan a flujo normal, apiladas una
-    debajo de otra, porque ahí no hay recorrido anclado.
-  */
-  .stage {
-    @apply relative flex w-full items-center px-6 py-14 md:px-10;
-    @apply lg:absolute lg:inset-0 lg:px-14 lg:py-12 xl:px-20;
-  }
-
-  /*
     Contenedor de una letra animada del hero.
     `inline-block` es imprescindible: GSAP no puede transformar elementos
     inline. Arranca invisible para que no se vea un fogonazo del texto ya

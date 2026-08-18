@@ -2,9 +2,9 @@
 
 > Webs + Tiendas online
 
-Sitio de una página con Next.js 14, TypeScript, Tailwind, GSAP y Lenis. Todo el
-portafolio se presenta **dentro de una ventana de navegador** que crece con el
-scroll y va pasando de una etapa a otra.
+Sitio de una página con Next.js 14, TypeScript, Tailwind, GSAP y Lenis. Una ventana
+de navegador acompaña al visitante durante todo el scroll, flotando en la mitad
+derecha y describiendo arcos al pasar de una sección a otra.
 
 **En producción:** https://brik-studio.vercel.app
 
@@ -42,28 +42,45 @@ git add -A && git commit -m "describe el cambio" && git push
 
 ## Cómo está montada la página
 
-Una única sección muy alta (`820vh`) con un panel pegajoso dentro. El scroll conduce
-todo el recorrido:
+Secciones **de altura normal** que scrollean con normalidad, con su contenido en la
+mitad izquierda. La ventana vive aparte, en una capa fija que nunca se desmonta:
 
 ```
-Showcase.tsx                      la sección alta
- └─ panel pegajoso                sticky top-0 h-screen
-     ├─ titular BRIK STUDIO       se desvanece hacia arriba
-     └─ MacFrame                  crece hasta llenar la pantalla
-         ├─ 1. Proyectos
-         ├─ 2. FisioSuab
-         ├─ 3. Glow by Sofy
-         ├─ 4. Servicios
-         ├─ 5. El estudio
-         └─ 6. Contacto
+app/page.tsx
+ ├─ FloatingWindow      capa fixed sobre la mitad derecha
+ ├─ Hero                    ┐
+ ├─ Projects                │ secciones normales,
+ ├─ Services                │ contenido a la izquierda
+ ├─ About                   │ (lg:pr-[50vw])
+ └─ Contact                 ┘
 ```
 
-Los tiempos de cada etapa están en la constante `MARKS` de `Showcase.tsx`, todos
-juntos para poder ajustar el ritmo sin rastrear varios archivos.
+Es el patrón del teclado 3D de nareshkhatri.dev: lo único que se mueve por scroll es
+el objeto flotante; el texto scrollea como en cualquier página.
 
-**En móvil no se ancla nada.** El panel deja de ser pegajoso, la sección pierde su
-altura enorme y las etapas se apilan en flujo normal dentro del marco. El scroll
-anclado en móvil secuestra el gesto del dedo y marea.
+### La coreografía
+
+En `FloatingWindow.tsx`, el array **`STOPS`** define una parada por sección: posición,
+giro, escala, qué captura enseña y cuánto se curva el trayecto hasta ella. Ahí se
+ajusta todo el movimiento sin tocar nada más.
+
+- Los arcos los traza **`MotionPathPlugin`** con un punto intermedio desplazado
+  (`bend`). Sin ese punto, el recorrido sería una línea recta.
+- Las posiciones van en **porcentaje del viewport**, no en píxeles, para que el arco
+  se vea igual en un portátil que en un monitor grande.
+- Hay **un disparador por sección** (`start: 'top bottom'` → `end: 'top center'`), no
+  una línea repartida a partes iguales: así la ventana llega a cada parada cuando esa
+  sección entra en pantalla, sea larga o corta.
+
+**La reversibilidad sale gratis.** Al ir con `scrub`, la animación está atada a la
+posición del scroll en lugar de reproducirse sola: subir la deshace sin una línea
+extra de código.
+
+### Móvil
+
+Por debajo de 1024px la ventana flotante **no se renderiza**: media pantalla fija no
+cabe en un móvil. Cada tarjeta de proyecto enseña entonces su captura en línea
+(`lg:hidden`). Es la única duplicación de marcado del proyecto.
 
 ---
 
@@ -73,26 +90,17 @@ Todo el contenido vive en `data/`. No hace falta tocar los componentes.
 
 - **`data/config.ts`** — nombre, WhatsApp, email, enlaces del menú.
   `whatsappNumber` va solo con dígitos: es lo que exige la API de wa.me.
-- **`data/projects.ts`** — proyectos. Copia un objeto y cambia los valores.
-- **`data/services.ts`** — servicios. `icon` acepta `'web'` o `'shop'`; para añadir
-  iconos amplía el `ICONS` del principio de `components/stages.tsx`.
+- **`data/projects.ts`** — proyectos.
+- **`data/services.ts`** — servicios. `icon` acepta `'web'` o `'shop'`.
 
-Si añades un proyecto, recuerda añadir también su etapa en `Showcase.tsx` y una
-marca más en `MARKS`.
+Si añades un proyecto, añade también su parada en el array `STOPS` de
+`FloatingWindow.tsx` y un `id` en la sección correspondiente.
 
 ### Cambiar las imágenes de los proyectos
 
 Las vistas previas actuales (`public/assets/projects/*.svg`) son recreaciones
-vectoriales de cada web. Para poner capturas reales:
-
-1. Captura a **1600 × 1000 px** (relación 16:10).
-2. Guárdala en `public/assets/projects/`.
-3. Cambia la extensión en `data/projects.ts`:
-
-```diff
-- image: '/assets/projects/fisiosuab.svg',
-+ image: '/assets/projects/fisiosuab.jpg',
-```
+vectoriales de cada web. Para poner capturas reales: guárdalas a **1600 × 1000 px**
+en `public/assets/projects/` y cambia la extensión en `data/projects.ts`.
 
 ---
 
@@ -100,10 +108,11 @@ vectoriales de cada web. Para poner capturas reales:
 
 | Efecto | Con qué | Dónde |
 | --- | --- | --- |
-| Letras lanzadas como ladrillos | GSAP, una línea por letra | `Showcase.tsx` |
-| Giro de dos vueltas de la ventana | GSAP `rotateY: 720` | `Showcase.tsx` |
-| Crecimiento y cambio de etapa | GSAP `ScrollTrigger` con `scrub` | `Showcase.tsx` |
-| Revelado palabra a palabra | El mismo `scrub`, dentro de su tramo | `Showcase.tsx` |
+| Letras lanzadas como ladrillos | GSAP, una línea por letra | `Hero.tsx` |
+| Giro de dos vueltas al cargar | GSAP `rotateY: 720` | `FloatingWindow.tsx` |
+| Arcos entre secciones | `MotionPathPlugin` + `scrub` | `FloatingWindow.tsx` |
+| Entradas al hacer scroll | GSAP `ScrollTrigger` | `Projects.tsx`, `Services.tsx` |
+| Revelado palabra a palabra | `ScrollTrigger` con `scrub` | `About.tsx` |
 | Cursor de dos capas + magnetismo | GSAP `quickTo` | `MagneticCursor.tsx` |
 | Blob que invierte lo que pisa | `mix-blend-mode: difference` | `MagneticCursor.tsx` |
 | Burbuja que envuelve el CTA | rAF + `getBoundingClientRect` | `MagneticCursor.tsx` |
@@ -112,24 +121,25 @@ vectoriales de cada web. Para poner capturas reales:
 
 ### Cinco trampas que ya costaron caras
 
-**Nunca animes el mismo elemento con dos sistemas.** La ventana lleva dos capas: la
-exterior la mueve el scroll y la interior la carga. Si compartieran nodo se pisarían
-la propiedad `transform`.
+**Nunca animes el mismo elemento con dos sistemas.** La ventana lleva dos nodos: el
+exterior hace los arcos del scroll y el interior el giro de entrada. Compartir nodo
+significa pelearse por la propiedad `transform`.
 
-**Nunca encadenes el scroll al final de una animación de entrada.** Construir la
-línea del scroll en el `onComplete` del giro dejaba la página muerta si el giro no
-terminaba — por ejemplo al abrir la web en una pestaña en segundo plano, donde el
-navegador congela los fotogramas.
+**Nunca encadenes el scroll al final de una animación de entrada.** Construir la línea
+del scroll en un `onComplete` deja la página muerta si esa animación no termina — por
+ejemplo al abrir la web en una pestaña en segundo plano, donde el navegador congela
+los fotogramas.
 
 **Un `fromTo` colocado a mitad de una línea no aplica su estado inicial hasta que la
-reproducción llega ahí.** Para lo que deba arrancar oculto, un `gsap.set()` aparte.
+reproducción llega ahí.** Para lo que deba arrancar oculto, un `gsap.set()` aparte. Y
+en los tweens atados a scroll, `immediateRender: false`, o saltan al cargar.
 
 **El `border-radius` orgánico de ocho valores con barra rompe el parser de GSAP.**
 Aborta el efecto entero **sin lanzar ningún error por consola**. La forma del blob va
 en la animación CSS `blob-morph`; a GSAP solo se le pasan números.
 
-**Ningún `gsap.to()` dentro de un bucle de `requestAnimationFrame`.** Crear el tween
-en cada fotograma lo reinicia antes de que pueda completarse: avanza un 4% y vuelve a
+**Ningún `gsap.to()` dentro de un bucle de `requestAnimationFrame`.** Crear el tween en
+cada fotograma lo reinicia antes de que pueda completarse: avanza un 4% y vuelve a
 empezar. Era la causa de que la burbuja del cursor fallara de forma intermitente.
 
 ---
@@ -139,12 +149,13 @@ empezar. Era la causa de que la burbuja del cursor fallara de forma intermitente
 - El cursor personalizado solo se activa con ratón real (`pointer: fine`) y pantalla
   ≥768px. La clase que oculta el cursor nativo se añade **desde JS**, así que si el
   script falla nunca te quedas sin puntero.
-- `prefers-reduced-motion` respetado: sin animaciones, sin cursor personalizado, sin
-  recorrido anclado y sin scroll interceptado.
+- La ventana flotante lleva `aria-hidden` y `pointer-events: none`: es decorativa y no
+  intercepta clics.
+- `prefers-reduced-motion` respetado: sin arcos, sin giro, sin ladrillos y sin scroll
+  interceptado.
 - `<noscript>` que revela todo el contenido si no hay JavaScript.
-- El texto troceado en letras lleva el original en `sr-only`: un lector de pantalla
-  lee "BRIK", no "B-R-I-K".
-- Enlace "Saltar al contenido" y foco visible en todos los interactivos.
+- El texto troceado en letras lleva el original en `sr-only`: un lector de pantalla lee
+  "BRIK", no "B-R-I-K".
 
 ---
 
@@ -152,14 +163,14 @@ empezar. Era la causa de que la burbuja del cursor fallara de forma intermitente
 
 ```
 app/
-  globals.css      Variables, cursor, clase .stage
+  globals.css      Variables, cursor, utilidades
   layout.tsx       Fuente, metadatos, fondo, navbar, pie
-  page.tsx         Monta <Showcase />
+  page.tsx         Ventana flotante + las cinco secciones
 components/
-  Showcase.tsx     El recorrido completo y toda la lógica de scroll
-  stages.tsx       Las seis pantallas que van dentro de la ventana
-  MacFrame.tsx     El marco de navegador reutilizable
+  FloatingWindow   La ventana y toda su coreografía de scroll
+  MacFrame         El marco de navegador reutilizable
   SiteBackground   Capa fija: degradado + partículas
+  Hero · Projects · Services · About · Contact
   MagneticCursor · ParticleField · SplitText
   Navigation · Footer · Logo · SmoothScroll
 data/              ← config, projects, services
@@ -171,8 +182,8 @@ public/assets/     Logo e imágenes de proyectos
 
 ## Stack
 
-Next.js 14 · React 18 · TypeScript · Tailwind CSS · GSAP 3 + ScrollTrigger ·
-Framer Motion · Lenis · Inter
+Next.js 14 · React 18 · TypeScript · Tailwind CSS ·
+GSAP 3 + ScrollTrigger + MotionPathPlugin · Framer Motion · Lenis · Inter
 
 ---
 
