@@ -1,18 +1,16 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import { GeistSans } from 'geist/font/sans';
 
 import './globals.css';
 import { config } from '@/data/config';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { SmoothScroll } from '@/components/SmoothScroll';
-import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import { MagneticCursor } from '@/components/MagneticCursor';
 
 /**
- * Inter para el texto corrido. `display: swap` evita el texto invisible
- * mientras carga la fuente (mejora el LCP).
- * Geist llega autoalojada desde el paquete `geist`: cero peticiones externas.
+ * Inter en toda la interfaz, del peso 400 al 900 (el hero usa el 900).
+ * `display: swap` evita el texto invisible mientras carga la fuente.
  */
 const inter = Inter({
   subsets: ['latin'],
@@ -55,48 +53,41 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0f0f0f' },
-  ],
+  themeColor: '#0a0a0a',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    // suppressHydrationWarning es obligatorio con next-themes: el script del
-    // tema escribe la clase en <html> antes de que React hidrate.
-    <html lang="es" suppressHydrationWarning className={`${GeistSans.variable} ${inter.variable}`}>
+    <html lang="es" className={inter.variable}>
       <body>
         {/*
           Red de seguridad sin JavaScript.
-          Las secciones arrancan con la clase `invisible` porque GSAP las va
-          revelando al hacer scroll. Si el visitante tiene JavaScript
-          desactivado (o el script falla al cargar) nadie las revelaria y la
-          pagina se veria en blanco. Esta regla las muestra todas de golpe.
+          Muchos bloques arrancan ocultos porque GSAP los revela al hacer
+          scroll. Si el visitante tiene JS desactivado o el script falla,
+          nadie los revelaría y vería la página en blanco. Estas reglas
+          lo muestran todo de golpe.
         */}
         <noscript>
-          <style>{`.invisible { visibility: visible !important; }`}</style>
+          <style>{`
+            .invisible { visibility: visible !important; }
+            .letter { opacity: 1 !important; }
+            .word { opacity: 1 !important; color: #ffffff !important; }
+          `}</style>
         </noscript>
 
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange
+        {/* Enlace de salto: primer elemento enfocable, solo visible con teclado. */}
+        <a
+          href="#proyectos"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded focus:bg-white focus:px-5 focus:py-3 focus:text-sm focus:font-semibold focus:text-background-primary"
         >
-          {/* Enlace de salto: primer elemento enfocable, solo visible con teclado. */}
-          <a
-            href="#proyectos"
-            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-primary focus:px-5 focus:py-3 focus:text-sm focus:font-semibold focus:text-primary-foreground"
-          >
-            Saltar al contenido
-          </a>
+          Saltar al contenido
+        </a>
 
-          <SmoothScroll />
-          <Navigation />
-          <main>{children}</main>
-          <Footer />
-        </ThemeProvider>
+        <MagneticCursor />
+        <SmoothScroll />
+        <Navigation />
+        <main>{children}</main>
+        <Footer />
       </body>
     </html>
   );

@@ -2,74 +2,48 @@
  * =====================================================================
  * SERVICIOS
  * ---------------------------------------------------------------------
- * `icon` es el nombre de un icono de lucide-react. El componente
- * Services.tsx lo mapea a su componente real (ver ICON_MAP alli).
+ * `icon` es una clave que Services.tsx traduce a un SVG. Así este archivo
+ * queda libre de JSX y se puede editar sin saber React.
  * =====================================================================
  */
 
 export interface Service {
   id: number;
-  /** Nombre del servicio. */
+  number: string;
   title: string;
-  /** Frase corta de posicionamiento. */
-  tagline: string;
-  /** Descripcion de 2-3 lineas. */
   description: string;
-  /** Beneficios concretos para el cliente. */
+  /** 3-4 beneficios concretos. Se listan con guion, no con viñeta. */
   benefits: string[];
-  /** Clave del icono en ICON_MAP (components/Services.tsx). */
-  icon: 'globe' | 'store';
+  icon: 'web' | 'shop';
 }
 
 export const SERVICES: Service[] = [
   {
     id: 1,
+    number: '01',
     title: 'Webs profesionales',
-    tagline: 'Tu negocio, bien explicado',
     description:
       'Webs y landing pages a medida que transmiten confianza desde el primer segundo y convierten visitas en clientes reales.',
     benefits: [
       'Diseño a medida, sin plantillas genéricas',
       'Carga rápida en móvil y ordenador',
       'Preparada para posicionar en Google',
-      'Formularios y WhatsApp integrados',
+      'WhatsApp y formularios integrados',
     ],
-    icon: 'globe',
+    icon: 'web',
   },
   {
     id: 2,
+    number: '02',
     title: 'Tiendas online',
-    tagline: 'Vende sin horarios',
     description:
-      'Tiendas online sencillas de gestionar y fáciles de comprar. Catálogo, pagos y envíos listos para que empieces a vender desde el día uno.',
+      'Tiendas fáciles de gestionar y fáciles de comprar. Catálogo, pagos y envíos listos para vender desde el primer día.',
     benefits: [
       'Pagos seguros con tarjeta y Bizum',
       'Panel simple para gestionar productos',
       'Proceso de compra corto y sin fricción',
       'Control de stock y pedidos',
     ],
-    icon: 'store',
+    icon: 'shop',
   },
 ];
-
-/**
- * Pasos del proceso de trabajo. Se muestran bajo los servicios para
- * dar contexto de "como trabajamos" sin necesidad de otra seccion.
- */
-export const PROCESS_STEPS = [
-  {
-    step: '01',
-    title: 'Hablamos',
-    description: 'Nos cuentas qué necesita tu negocio. Sin tecnicismos y sin compromiso.',
-  },
-  {
-    step: '02',
-    title: 'Diseñamos',
-    description: 'Te enseñamos una propuesta visual antes de escribir una sola línea de código.',
-  },
-  {
-    step: '03',
-    title: 'Publicamos',
-    description: 'Lanzamos tu web, la dejamos rápida y medible, y te enseñamos a usarla.',
-  },
-] as const;

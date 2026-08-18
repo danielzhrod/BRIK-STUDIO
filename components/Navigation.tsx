@@ -2,30 +2,27 @@
 
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useTheme } from 'next-themes';
-import { Menu, Moon, Sun, X } from 'lucide-react';
 
 import { NAV_LINKS, config, whatsappUrl } from '@/data/config';
-import { buttonVariants } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
 
-/** Pixeles de scroll a partir de los cuales el navbar pasa a modo "compacto". */
-const SCROLL_THRESHOLD = 24;
+/** Píxeles de scroll a partir de los cuales la barra se vuelve opaca. */
+const SCROLL_THRESHOLD = 50;
 
 /**
  * =====================================================================
- * NAVEGACION
+ * NAVEGACIÓN
  * ---------------------------------------------------------------------
- * Barra fija que se vuelve translucida al hacer scroll. En movil abre un
- * panel a pantalla completa con los mismos enlaces y el CTA de WhatsApp.
+ * Transparente sobre el hero; al bajar 50px se pone opaca con desenfoque
+ * para que los enlaces sigan legibles sobre cualquier contenido.
+ * En móvil abre un panel a pantalla completa.
  * =====================================================================
  */
 export function Navigation() {
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  // Detecta el scroll para cambiar el fondo de la barra.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
     onScroll();
@@ -33,152 +30,131 @@ export function Navigation() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Bloquea el scroll del fondo mientras el menu movil esta abierto.
+  // Bloquea el scroll del fondo mientras el menú está abierto.
   useEffect(() => {
-    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    document.body.style.overflow = open ? 'hidden' : '';
     return () => {
       document.body.style.overflow = '';
     };
-  }, [menuOpen]);
+  }, [open]);
 
-  // Cierra el menu con la tecla Escape.
+  // Cerrar con Escape.
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false);
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   return (
     <header
       className={cn(
-        'fixed inset-x-0 top-0 z-50 transition-all duration-500 ease-smooth',
+        'fixed inset-x-0 top-0 z-50 transition-all duration-300 ease-out',
         scrolled
-          ? 'border-b border-border/70 bg-background/80 backdrop-blur-xl'
-          : 'border-b border-transparent bg-transparent',
+          ? 'border-b border-background-border bg-background-primary/85 backdrop-blur-xl'
+          : 'border-b border-transparent',
       )}
     >
-      <nav className="container flex h-20 items-center justify-between gap-4" aria-label="Principal">
-        <a href="#inicio" className="flex items-center gap-2.5" aria-label={`${config.name} — Inicio`}>
-          <Logo className="h-8 w-8" />
-          <span className="font-heading text-base font-bold tracking-tight text-foreground">
-            {config.name}
-          </span>
+      <nav className="shell flex h-20 items-center justify-between" aria-label="Principal">
+        <a
+          href="#inicio"
+          data-cursor="link"
+          aria-label={`${config.name} — Inicio`}
+          className="text-white transition-opacity duration-300 hover:opacity-70"
+        >
+          <Logo className="h-7" />
         </a>
 
-        {/* --- Enlaces de escritorio --- */}
-        <ul className="hidden items-center gap-1 md:flex">
+        {/* --- Enlaces en escritorio --- */}
+        <ul className="hidden items-center gap-10 md:flex">
           {NAV_LINKS.map((link) => (
             <li key={link.href}>
               <a
                 href={link.href}
-                className="relative rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-foreground"
+                data-cursor="link"
+                className="group relative text-[13px] font-medium uppercase tracking-[0.15em] text-text-secondary transition-colors duration-300 hover:text-white"
               >
                 {link.label}
+                {/* Subrayado que crece desde la izquierda al pasar el ratón */}
+                <span className="absolute -bottom-1.5 left-0 h-px w-full origin-left scale-x-0 bg-accent-blue transition-transform duration-300 ease-smooth group-hover:scale-x-100" />
               </a>
             </li>
           ))}
         </ul>
 
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(buttonVariants({ variant: 'primary', size: 'sm' }), 'hidden md:inline-flex')}
-          >
-            Hablemos
-          </a>
-
-          {/* --- Boton hamburguesa (solo movil) --- */}
-          <button
-            type="button"
-            onClick={() => setMenuOpen((open) => !open)}
-            aria-expanded={menuOpen}
-            aria-controls="menu-movil"
-            aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:bg-surface md:hidden"
-          >
-            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
+        {/* --- Botón hamburguesa (móvil) --- */}
+        <button
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          aria-expanded={open}
+          aria-controls="menu-movil"
+          aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+          className="flex h-11 w-11 flex-col items-center justify-center gap-[5px] md:hidden"
+        >
+          <span
+            className={cn(
+              'block h-px w-6 bg-white transition-transform duration-300',
+              open && 'translate-y-[3px] rotate-45',
+            )}
+          />
+          <span
+            className={cn(
+              'block h-px w-6 bg-white transition-transform duration-300',
+              open && '-translate-y-[3px] -rotate-45',
+            )}
+          />
+        </button>
       </nav>
 
-      {/* --- Panel de menu movil --- */}
+      {/* --- Panel móvil a pantalla completa --- */}
       <AnimatePresence>
-        {menuOpen && (
+        {open && (
           <motion.div
             id="menu-movil"
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            className="border-b border-border bg-background/98 backdrop-blur-xl md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 top-20 bg-background-primary md:hidden"
           >
-            <ul className="container flex flex-col gap-1 py-6">
-              {NAV_LINKS.map((link) => (
-                <li key={link.href}>
+            <ul className="shell flex flex-col gap-2 pt-10">
+              {NAV_LINKS.map((link, index) => (
+                <motion.li
+                  key={link.href}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05 * index + 0.1, duration: 0.4 }}
+                >
                   <a
                     href={link.href}
-                    onClick={() => setMenuOpen(false)}
-                    className="flex min-h-[52px] items-center rounded-md px-2 text-lg font-medium text-foreground transition-colors hover:text-primary"
+                    onClick={() => setOpen(false)}
+                    className="flex min-h-[60px] items-center border-b border-background-border text-2xl font-bold text-white"
                   >
                     {link.label}
                   </a>
-                </li>
+                </motion.li>
               ))}
-              <li className="mt-3">
+              <motion.li
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+                className="mt-8"
+              >
                 <a
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => setMenuOpen(false)}
-                  className={cn(buttonVariants({ variant: 'whatsapp', size: 'lg' }), 'w-full')}
+                  onClick={() => setOpen(false)}
+                  className="flex min-h-[56px] w-full items-center justify-center rounded bg-accent-whatsapp px-8 font-semibold text-background-primary"
                 >
                   Escríbenos por WhatsApp
                 </a>
-              </li>
+              </motion.li>
             </ul>
           </motion.div>
         )}
       </AnimatePresence>
     </header>
-  );
-}
-
-/**
- * Selector de tema claro/oscuro.
- * `mounted` evita el desajuste de hidratacion: en el servidor no sabemos
- * que tema tiene guardado el usuario, asi que no pintamos el icono hasta
- * estar en el cliente.
- */
-function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
-  const { resolvedTheme, setTheme } = useTheme();
-
-  useEffect(() => setMounted(true), []);
-
-  const isDark = resolvedTheme === 'dark';
-
-  return (
-    <button
-      type="button"
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      aria-label={isDark ? 'Activar tema claro' : 'Activar tema oscuro'}
-      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border text-muted-foreground transition-all duration-300 hover:text-foreground"
-    >
-      {mounted ? (
-        isDark ? (
-          <Sun className="h-[18px] w-[18px]" />
-        ) : (
-          <Moon className="h-[18px] w-[18px]" />
-        )
-      ) : (
-        <span className="h-[18px] w-[18px]" />
-      )}
-    </button>
   );
 }

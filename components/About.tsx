@@ -1,83 +1,133 @@
-import { Gauge, PenTool, Target } from 'lucide-react';
+'use client';
 
-import { config } from '@/data/config';
-import { Reveal } from '@/components/Reveal';
+import { useRef } from 'react';
 
-/** Los tres principios que resumen la forma de trabajar del estudio. */
-const PRINCIPLES = [
-  {
-    icon: PenTool,
-    title: 'Diseño limpio',
-    description: 'Nada sobra. Cada elemento está donde está por un motivo.',
-  },
-  {
-    icon: Gauge,
-    title: 'Funcionalidad',
-    description: 'Webs rápidas, que se ven bien en cualquier móvil y no se rompen.',
-  },
-  {
-    icon: Target,
-    title: 'Conversión',
-    description: 'El objetivo no es una web bonita: es que te lleguen más clientes.',
-  },
-];
+import { STATS } from '@/data/config';
+import { gsap, MOTION, prefersReducedMotion, useIsomorphicLayoutEffect } from '@/lib/gsap';
+
+/** La frase que se revela palabra a palabra al hacer scroll. */
+const STATEMENT =
+  'No hacemos webs bonitas. Hacemos webs que consiguen que suene el teléfono, que se llene la agenda y que la gente compre.';
 
 /**
  * =====================================================================
- * SOBRE NOSOTROS
+ * ESTUDIO — declaración de intenciones
  * ---------------------------------------------------------------------
- * Server Component: es contenido estatico, no necesita JavaScript en el
- * navegador. Solo `Reveal` (cliente) se encarga de la animacion.
+ * Fondo distinto (#111111) para romper el ritmo visual a mitad de página.
+ *
+ * El efecto principal es el "word reveal": las palabras van pasando de
+ * gris apagado a blanco conforme avanzas con el scroll. Va con `scrub`,
+ * o sea que el scroll controla la animación fotograma a fotograma en
+ * lugar de dispararla y olvidarse.
  * =====================================================================
  */
 export function About() {
-  return (
-    <section id="nosotros" className="relative overflow-hidden bg-surface/40">
-      <div className="section-shell">
-        <div className="grid gap-14 lg:grid-cols-[1.15fr_1fr] lg:gap-20">
-          {/* ---------- Texto ---------- */}
-          <Reveal>
-            <p className="section-eyebrow">
-              <span className="h-px w-8 bg-primary" aria-hidden="true" />
-              Sobre nosotros
-            </p>
-            <h2 className="section-title">Un estudio pequeño, muy cerca de tu negocio</h2>
+  const sectionRef = useRef<HTMLElement>(null);
 
-            <div className="mt-6 space-y-5 text-base leading-relaxed text-muted-foreground">
-              <p>{config.description}</p>
-              <p>
-                Somos {config.name}, un estudio pequeño y por eso mismo cercano: hablas siempre con
-                la persona que diseña y programa tu web, sin intermediarios ni departamentos.
-                Trabajamos sobre todo con negocios locales —clínicas, salones, tiendas de barrio— que
-                necesitan una presencia online seria sin complicarse la vida.
+  useIsomorphicLayoutEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    if (prefersReducedMotion()) {
+      gsap.set(section.querySelectorAll('.word'), { autoAlpha: 1, color: '#ffffff' });
+      gsap.set(section.querySelectorAll('[data-anim]'), { autoAlpha: 1, y: 0 });
+      return;
+    }
+
+    const ctx = gsap.context(() => {
+      // --- Revelado palabra a palabra, atado al scroll ---
+      gsap.to('.word', {
+        opacity: 1,
+        color: '#ffffff',
+        stagger: 0.05,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '[data-statement]',
+          start: 'top 70%',
+          end: 'bottom 40%',
+          scrub: true,
+        },
+      });
+
+      // --- Contadores de las tres cifras ---
+      const counters = gsap.utils.toArray<HTMLElement>('[data-counter]');
+      counters.forEach((counter) => {
+        const target = Number(counter.dataset.counter ?? '0');
+        // Objeto intermedio: GSAP anima su propiedad y nosotros la
+        // volcamos al DOM redondeada en cada frame.
+        const box = { value: 0 };
+
+        gsap.to(box, {
+          value: target,
+          duration: 1.6,
+          ease: 'power2.out',
+          scrollTrigger: { trigger: counter, start: 'top 85%', once: true },
+          onUpdate: () => {
+            counter.textContent = String(Math.round(box.value));
+          },
+        });
+      });
+
+      gsap.fromTo(
+        '[data-anim="stats"]',
+        { y: 40, autoAlpha: 0 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          duration: MOTION.duration,
+          ease: MOTION.ease,
+          scrollTrigger: { trigger: '[data-anim="stats"]', start: 'top 85%', once: true },
+        },
+      );
+    }, section);
+
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <section
+      ref={sectionRef}
+      id="estudio"
+      className="scroll-mt-24 bg-background-secondary py-section"
+    >
+      <div className="shell">
+        <p className="eyebrow mb-16 text-center">El estudio</p>
+
+        {/* ---------- Frase que se revela ---------- */}
+        <p
+          data-statement
+          className="mx-auto max-w-[900px] text-center text-statement font-bold"
+        >
+          {STATEMENT.split(' ').map((word, index) => (
+            <span
+              key={`${word}-${index}`}
+              className="word inline-block opacity-20"
+              style={{ color: '#4b5563' }}
+            >
+              {word}
+              {/* Espacio real entre palabras: los inline-block lo comerían */}
+              {' '}
+            </span>
+          ))}
+        </p>
+
+        {/* ---------- Cifras ---------- */}
+        <div
+          data-anim="stats"
+          className="invisible mt-24 grid gap-12 border-t border-background-border pt-16 sm:grid-cols-3"
+        >
+          {STATS.map((stat) => (
+            <div key={stat.label} className="text-center">
+              <p className="text-[clamp(2.5rem,6vw,4rem)] font-black leading-none text-white">
+                {'prefix' in stat ? stat.prefix : ''}
+                <span data-counter={stat.value}>0</span>
+                {stat.suffix}
               </p>
-              <p>
-                Antes de tocar una línea de código nos sentamos a entender a quién quieres llegar y
-                qué necesitas que pase cuando alguien entra en tu web: que te llame, que reserve cita
-                o que compre. Todo lo demás son decisiones al servicio de eso.
+              <p className="mt-4 text-[11px] uppercase tracking-[0.2em] text-text-muted">
+                {stat.label}
               </p>
             </div>
-          </Reveal>
-
-          {/* ---------- Principios ---------- */}
-          <Reveal stagger className="flex flex-col gap-4 lg:pt-16">
-            {PRINCIPLES.map(({ icon: Icon, title, description }) => (
-              <div
-                key={title}
-                className="flex gap-5 rounded-lg border border-border bg-background/60 p-6 transition-colors duration-500 hover:border-primary/40"
-              >
-                <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                  <Icon className="h-5 w-5" aria-hidden="true" />
-                </span>
-                <div>
-                  <h3 className="font-heading text-lg font-bold text-foreground">{title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                    {description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </Reveal>
+          ))}
         </div>
       </div>
     </section>

@@ -5,9 +5,9 @@ import { About } from '@/components/About';
 import { Contact } from '@/components/Contact';
 
 /**
- * Home de una sola pagina.
- * El orden importa: primero el gancho (Hero), inmediatamente despues la
- * prueba (Proyectos) y al final la accion (Contacto).
+ * Home de una sola página.
+ * El orden es intencional: gancho (Hero) → prueba (Proyectos) →
+ * oferta (Servicios) → confianza (Estudio) → acción (Contacto).
  */
 export default function HomePage() {
   return (

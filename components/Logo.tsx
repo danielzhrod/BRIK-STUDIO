@@ -1,27 +1,49 @@
 import { cn } from '@/lib/utils';
 
 /**
- * Isotipo de BRIK STUDIO: tres "ladrillos" (brick -> BRIK) montados en
- * hilada, como una pared. Es un SVG inline, asi que hereda el color del
- * tema y no cuesta ninguna peticion de red.
+ * Wordmark de BRIK STUDIO.
+ *
+ * Es texto SVG, no una imagen: escala nítido a cualquier tamaño, pesa
+ * unos pocos bytes, hereda el color del tema y se puede seleccionar y
+ * leer por buscadores y lectores de pantalla.
+ *
+ * "BRIK" va en negro extra-condensado con una inclinación ligera, y
+ * "STUDIO" debajo a la derecha muy espaciado, como en el logo original.
  */
 export function Logo({ className }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 32 32"
+      viewBox="0 0 132 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-hidden="true"
-      className={cn('shrink-0', className)}
+      aria-label="BRIK STUDIO"
+      className={cn('h-8 w-auto', className)}
     >
-      <rect width="32" height="32" rx="8" className="fill-primary" />
-      {/* hilada superior: un ladrillo largo */}
-      <rect x="7" y="9" width="18" height="4.5" rx="1.4" fill="white" fillOpacity="0.95" />
-      {/* hilada inferior: dos ladrillos desplazados (traba de albañileria) */}
-      <rect x="7" y="15.5" width="8" height="4.5" rx="1.4" fill="white" fillOpacity="0.7" />
-      <rect x="17" y="15.5" width="8" height="4.5" rx="1.4" fill="white" fillOpacity="0.7" />
-      <rect x="7" y="22" width="18" height="1.8" rx="0.9" fill="white" fillOpacity="0.35" />
+      <text
+        x="0"
+        y="24"
+        fill="currentColor"
+        fontFamily="var(--font-inter), system-ui, sans-serif"
+        fontSize="27"
+        fontWeight="900"
+        letterSpacing="-1.4"
+        // La inclinación imita la cursiva del logotipo original.
+        transform="skewX(-9)"
+      >
+        BRIK
+      </text>
+      <text
+        x="61"
+        y="36"
+        fill="currentColor"
+        fontFamily="var(--font-inter), system-ui, sans-serif"
+        fontSize="10"
+        fontWeight="600"
+        letterSpacing="4.2"
+      >
+        STUDIO
+      </text>
     </svg>
   );
 }

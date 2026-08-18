@@ -1,191 +1,215 @@
 'use client';
 
 import Image from 'next/image';
-import { motion, type Variants } from 'framer-motion';
-import { ArrowUpRight, Check } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 
 import { PROJECTS, type Project } from '@/data/projects';
-import { Badge } from '@/components/ui/badge';
-import { Reveal } from '@/components/Reveal';
-import { cn } from '@/lib/utils';
-
-/** Curva compartida por todas las transiciones de hover. */
-const EASE_SMOOTH = [0.16, 1, 0.3, 1] as const;
-const HOVER_TRANSITION = { duration: 0.45, ease: EASE_SMOOTH };
-
-/**
- * ---------------------------------------------------------------------
- * VARIANTES DE HOVER (Framer Motion)
- * ---------------------------------------------------------------------
- * La tarjeta declara `whileHover="hover"` una sola vez y TODOS los hijos
- * heredan ese estado. Asi la subida, el zoom, el oscurecido y el boton
- * arrancan en el mismo frame: cero desincronizacion, cero jitter.
- */
-const cardVariants: Variants = {
-  rest: { y: 0 },
-  hover: { y: -10 }, // la tarjeta sube 10px
-};
-
-const imageVariants: Variants = {
-  rest: { scale: 1 },
-  hover: { scale: 1.05 }, // zoom ligero de la imagen
-};
-
-const overlayVariants: Variants = {
-  rest: { opacity: 0 },
-  hover: { opacity: 1 }, // velo oscuro suave
-};
-
-const ctaVariants: Variants = {
-  rest: { opacity: 0, y: 10 },
-  hover: { opacity: 1, y: 0 }, // el CTA emerge desde abajo
-};
+import { gsap, MOTION, prefersReducedMotion, ScrollTrigger, useIsomorphicLayoutEffect } from '@/lib/gsap';
 
 /**
  * =====================================================================
- * PROYECTOS — la seccion mas importante del portafolio
+ * PROYECTOS
  * ---------------------------------------------------------------------
- * Rejilla responsive:
- *   Movil   -> 1 columna, tarjetas verticales grandes
- *   Tablet  -> 1 columna (mas ancha)
- *   Desktop -> 2 columnas
+ * Nada de rejilla. Cada proyecto ocupa casi todo el ancho y van apilados
+ * con mucho aire entre ellos, para que se lean de uno en uno.
+ *
+ * El texto entra desde la izquierda y la imagen desde la derecha cuando
+ * la tarjeta cruza el 80% del viewport. El contador de la cabecera va
+ * marcando qué proyecto estás mirando.
  * =====================================================================
  */
 export function Projects() {
-  return (
-    <section id="proyectos" className="section-shell">
-      <Reveal>
-        <p className="section-eyebrow">
-          <span className="h-px w-8 bg-primary" aria-hidden="true" />
-          Portafolio
-        </p>
-        <h2 className="section-title">Proyectos que ya están funcionando</h2>
-        <p className="section-subtitle">
-          Webs reales, publicadas y en manos de sus clientes. Entra y compruébalo tú mismo.
-        </p>
-      </Reveal>
+  const sectionRef = useRef<HTMLElement>(null);
+  const [current, setCurrent] = useState(1);
 
-      {/* `stagger` hace que las tarjetas aparezcan una detras de otra. */}
-      <Reveal stagger className="mt-14 grid gap-8 lg:grid-cols-2 lg:gap-10">
-        {PROJECTS.map((project) => (
-          <ProjectCard key={project.id} project={project} />
-        ))}
-      </Reveal>
+  useIsomorphicLayoutEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    if (prefersReducedMotion()) {
+      gsap.set(section.querySelectorAll('[data-anim]'), { autoAlpha: 1, x: 0, y: 0 });
+      return;
+    }
+
+    const ctx = gsap.context(() => {
+      // --- Cabecera de la sección ---
+      gsap.fromTo(
+        '[data-anim="head"]',
+        { y: 60, autoAlpha: 0 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          duration: MOTION.duration,
+          ease: MOTION.ease,
+          scrollTrigger: { trigger: section, start: 'top 75%', once: true },
+        },
+      );
+
+      // --- Cada tarjeta ---
+      const cards = gsap.utils.toArray<HTMLElement>('[data-project-card]');
+      cards.forEach((card, index) => {
+        const text = card.querySelector('[data-anim="text"]');
+        const media = card.querySelector('[data-anim="media"]');
+
+        gsap.fromTo(
+          text,
+          { x: -60, autoAlpha: 0 },
+          {
+            x: 0,
+            autoAlpha: 1,
+            duration: MOTION.duration,
+            ease: MOTION.ease,
+            scrollTrigger: { trigger: card, start: 'top 80%', once: true },
+          },
+        );
+
+        gsap.fromTo(
+          media,
+          { x: 60, autoAlpha: 0 },
+          {
+            x: 0,
+            autoAlpha: 1,
+            duration: MOTION.duration,
+            ease: MOTION.ease,
+            scrollTrigger: { trigger: card, start: 'top 80%', once: true },
+          },
+        );
+
+        // Actualiza el contador "01 / 02" según la tarjeta en pantalla.
+        ScrollTrigger.create({
+          trigger: card,
+          start: 'top 60%',
+          end: 'bottom 40%',
+          onToggle: (self) => {
+            if (self.isActive) setCurrent(index + 1);
+          },
+        });
+      });
+    }, section);
+
+    return () => ctx.revert();
+  }, []);
+
+  const total = String(PROJECTS.length).padStart(2, '0');
+
+  return (
+    <section
+      ref={sectionRef}
+      id="proyectos"
+      className="scroll-mt-24 bg-background-primary py-section"
+    >
+      <div className="shell">
+        {/* ---------- Cabecera ---------- */}
+        <div data-anim="head" className="invisible mb-24 flex items-end justify-between gap-8">
+          <div>
+            <p className="eyebrow mb-6">Trabajo seleccionado</p>
+            <h2 className="font-black text-h1 text-white">Proyectos</h2>
+          </div>
+          {/* Contador que cambia al hacer scroll */}
+          <p className="shrink-0 pb-3 font-mono text-sm text-text-muted">
+            <span className="text-white">{String(current).padStart(2, '0')}</span> / {total}
+          </p>
+        </div>
+
+        {/* ---------- Tarjetas ---------- */}
+        <div className="flex flex-col gap-[120px]">
+          {PROJECTS.map((project) => (
+            <ProjectCard key={project.id} project={project} />
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
 
-/**
- * Tarjeta individual de proyecto.
- *
- * Accesibilidad: toda la tarjeta es un enlace, y el `<span>` que envuelve
- * el titulo lleva `after:absolute inset-0` para que el area clicable cubra
- * la tarjeta entera sin anidar enlaces (patron "stretched link").
- */
 function ProjectCard({ project }: { project: Project }) {
   return (
-    <motion.article
-      initial="rest"
-      animate="rest"
-      whileHover="hover"
-      whileTap={{ scale: 0.99 }} // feedback tactil al pulsar, tambien en movil
-      variants={cardVariants}
-      transition={HOVER_TRANSITION}
-      className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-card transition-[border-color,box-shadow] duration-500 ease-smooth hover:border-primary/40 hover:shadow-card-hover"
+    <article
+      data-project-card
+      className="group relative grid items-center gap-10 lg:grid-cols-[45%_55%] lg:gap-16"
     >
-      {/* ---------------- Vista previa ---------------- */}
-      <div className="relative aspect-[16/10] overflow-hidden bg-surface-elevated">
-        <motion.div variants={imageVariants} transition={HOVER_TRANSITION} className="h-full w-full">
-          <Image
-            src={project.image}
-            alt={project.imageAlt}
-            fill
-            // Ancho real que ocupa la imagen en cada breakpoint, para que el
-            // navegador descargue la resolucion justa. Por debajo de 1024px
-            // la rejilla es de UNA columna, asi que ocupa el ancho completo.
-            sizes="(min-width: 1024px) 45vw, 100vw"
-            className="object-cover object-top"
-            // Las dos tarjetas estan muy arriba: las cargamos con prioridad.
-            priority={project.id <= 2}
-          />
-        </motion.div>
+      {/* Número gigante de fondo. Sube de opacidad al pasar el ratón. */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-16 left-0 select-none text-[96px] font-black leading-none text-white opacity-[0.08] transition-opacity duration-500 group-hover:opacity-[0.15]"
+      >
+        {project.number}
+      </span>
 
-        {/* Velo oscuro que aparece al pasar el raton */}
-        <motion.div
-          variants={overlayVariants}
-          transition={HOVER_TRANSITION}
-          className="pointer-events-none absolute inset-0 bg-black/45"
-          aria-hidden="true"
-        />
-
-        {/* Año, esquina superior derecha */}
-        <div className="absolute right-4 top-4">
-          <Badge variant="solid">{project.year}</Badge>
-        </div>
-
-        {/*
-          CTA flotante SOLO en escritorio (lg+): en movil no existe el hover,
-          asi que alli usamos el enlace fijo del pie de la tarjeta.
-        */}
-        <motion.span
-          variants={ctaVariants}
-          transition={HOVER_TRANSITION}
-          className="pointer-events-none absolute inset-x-0 bottom-0 hidden items-center justify-center p-6 lg:flex"
-          aria-hidden="true"
-        >
-          <span className="inline-flex items-center gap-2 rounded-full bg-primary-solid px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow">
-            Ver proyecto en vivo
-            <ArrowUpRight className="h-4 w-4" />
+      {/* ---------- Texto ---------- */}
+      <div data-anim="text" className="invisible relative z-10 order-2 lg:order-1">
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <span className="rounded-full border border-accent-blue/40 bg-accent-blue/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.12em] text-accent-blue">
+            {project.type}
           </span>
-        </motion.span>
-      </div>
-
-      {/* ---------------- Contenido ---------------- */}
-      <div className="flex flex-1 flex-col p-6 md:p-8">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="accent">{project.type}</Badge>
-          <Badge>{project.industry}</Badge>
+          <span className="text-[11px] uppercase tracking-[0.12em] text-text-muted">
+            {project.industry} · {project.year}
+          </span>
         </div>
 
-        <h3 className="mt-5 font-heading text-2xl font-bold tracking-tight text-foreground">
-          <a
-            href={project.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            // "stretched link": el ::after invisible convierte toda la
-            // tarjeta en zona clicable sin anidar etiquetas <a>.
-            className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none"
-          >
-            {project.name}
-            <span className="sr-only"> — abrir proyecto en una pestaña nueva</span>
-          </a>
+        <h3 className="text-h2 font-bold text-white transition-colors duration-300 group-hover:text-accent-blue">
+          {project.name}
         </h3>
 
-        <p className="mt-3 text-[0.95rem] leading-relaxed text-muted-foreground">
+        <p className="mt-5 max-w-md text-base leading-[1.7] text-text-secondary">
           {project.description}
         </p>
 
-        <ul className="mt-6 space-y-2.5">
-          {project.highlights.map((highlight) => (
-            <li key={highlight} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-              {highlight}
-            </li>
-          ))}
-        </ul>
-
-        {/* Enlace visible siempre (imprescindible en movil, donde no hay hover). */}
-        <span
-          className={cn(
-            // `mt-auto` empuja el enlace al fondo: las dos tarjetas acaban igual.
-            'mt-auto inline-flex items-center gap-2 pt-8 text-sm font-semibold text-primary',
-            'border-t border-border transition-colors duration-300 group-hover:text-primary',
-          )}
+        <a
+          href={project.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-magnetic
+          data-cursor="link"
+          className="group/link mt-8 inline-flex items-center gap-3 text-sm font-semibold text-white"
         >
-          Ver proyecto en vivo
-          <ArrowUpRight className="h-4 w-4 transition-transform duration-300 ease-smooth group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-        </span>
+          Ver proyecto
+          <span className="transition-transform duration-300 ease-smooth group-hover/link:translate-x-2">
+            →
+          </span>
+        </a>
+
+        {/* Línea que se despliega desde la izquierda al pasar el ratón */}
+        <span
+          aria-hidden="true"
+          className="mt-10 block h-px w-full origin-left scale-x-0 bg-background-border transition-transform duration-700 ease-smooth group-hover:scale-x-100"
+        />
       </div>
-    </motion.article>
+
+      {/*
+        ---------- Imagen ----------
+        Tres capas a propósito:
+          · el <div> exterior lo anima GSAP (entrada lateral)
+          · el <a> recorta con overflow-hidden y no se mueve
+          · el <motion.div> interior hace el zoom del hover
+        Si GSAP y Framer Motion escribieran sobre el MISMO elemento se
+        pisarían la propiedad `transform` y el efecto saldría a trompicones.
+      */}
+      <div data-anim="media" className="invisible order-1 lg:order-2">
+        <a
+          href={project.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-cursor="project"
+          aria-label={`Ver ${project.name} en una pestaña nueva`}
+          className="relative block h-[280px] overflow-hidden rounded-lg border border-white/10 lg:h-[500px]"
+        >
+          <motion.div
+            className="absolute inset-0"
+            whileHover={{ scale: 1.04 }}
+            transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <Image
+              src={project.image}
+              alt={project.imageAlt}
+              fill
+              sizes="(min-width: 1024px) 55vw, 100vw"
+              className="object-cover object-top"
+            />
+          </motion.div>
+        </a>
+      </div>
+    </article>
   );
 }

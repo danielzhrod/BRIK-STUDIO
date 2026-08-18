@@ -3,93 +3,52 @@
 @tailwind utilities;
 
 @layer base {
-  /* ------------------------------------------------------------------
-     TEMA CLARO (por defecto en :root)
-     El sitio arranca en oscuro (ver ThemeProvider), pero definimos el
-     claro completo para que el toggle del navbar funcione de verdad.
-  ------------------------------------------------------------------ */
   :root {
-    --background: 0 0% 100%; /* #ffffff */
-    --surface: 0 0% 97.3%; /* #f8f8f8 */
-    --surface-elevated: 0 0% 100%;
-    --foreground: 0 0% 5.9%; /* #0f0f0f */
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 43%; /* gris legible sobre blanco */
-    --border: 220 13% 88%;
-    --ring: 217 91% 60%;
-    --primary: 217 91% 52%; /* azul con mas contraste sobre blanco */
-    --primary-solid: 217 91% 52%; /* sobre blanco ya contrasta 4.7:1 */
-    --primary-foreground: 0 0% 100%;
-    --whatsapp: 160 84% 33%;
-    --whatsapp-foreground: 0 0% 100%;
-    --shadow-color: 220 40% 30%;
-
-    --radius: 16px;
-  }
-
-  /* ------------------------------------------------------------------
-     TEMA OSCURO (tema principal del portafolio)
-     Colores exactos del brief de BRIK STUDIO.
-  ------------------------------------------------------------------ */
-  .dark {
-    --background: 0 0% 5.9%; /* #0f0f0f */
-    --surface: 0 0% 10.2%; /* #1a1a1a */
-    --surface-elevated: 0 0% 13%;
-    --foreground: 0 0% 100%; /* #ffffff */
-    --muted: 0 0% 14%;
-    --muted-foreground: 216 12% 84%; /* #d1d5db */
-    --border: 217 19% 27%; /* #374151 */
-    --ring: 217 91% 60%;
-
-    /*
-      DOS AZULES, A PROPOSITO:
-
-      --primary (#3b82f6, el del brief) se usa para TEXTO, iconos y bordes
-      sobre el fondo oscuro. Ahi contrasta 5.2:1 y se lee perfectamente.
-
-      --primary-solid (#2563eb) se usa solo para RELLENOS solidos con texto
-      blanco encima (botones). Con #3b82f6 el blanco solo contrastaria
-      3.7:1, por debajo del 4.5:1 que exige la WCAG AA para texto normal;
-      con este azul sube a 5.2:1. A simple vista son el mismo azul de marca.
-    */
-    --primary: 217 91% 60%; /* #3b82f6 */
-    --primary-solid: 221 83% 53%; /* #2563eb */
-    --primary-foreground: 0 0% 100%;
-    --whatsapp: 160 84% 39%; /* #10b981 */
-    --whatsapp-foreground: 0 0% 4%;
-    --shadow-color: 0 0% 0%;
+    --bg-primary: #0a0a0a;
+    --accent-blue: #3b82f6;
   }
 
   * {
-    @apply border-border;
+    @apply border-background-border;
   }
 
   html {
-    /* Lenis controla el scroll en desktop; este fallback cubre el resto
-       (movil y usuarios con "reducir movimiento" activado). */
+    /* Fallback: si Lenis no arranca (JS desactivado, error), el scroll
+       interno sigue siendo suave. Lenis lo desactiva por su cuenta. */
     scroll-behavior: smooth;
-    /* Evita que el navbar fijo tape el titulo de la seccion al navegar. */
     scroll-padding-top: 6rem;
+    background-color: #0a0a0a;
   }
 
   body {
-    @apply bg-background font-sans text-foreground antialiased;
+    @apply bg-background-primary font-sans text-text-primary antialiased;
     -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
   }
 
-  h1,
-  h2,
-  h3 {
-    @apply font-heading font-bold;
+  /*
+    CURSOR PERSONALIZADO
+    La clase la añade MagneticCursor.tsx solo cuando de verdad se activa
+    (ratón fino + pantalla grande). Así, si el JS falla o estás en móvil,
+    nunca te quedas sin cursor visible.
+  */
+  .has-custom-cursor,
+  .has-custom-cursor * {
+    cursor: none !important;
   }
 
-  /* Foco visible y consistente para navegacion por teclado (accesibilidad). */
+  ::selection {
+    background: var(--accent-blue);
+    color: #ffffff;
+  }
+
+  /* Foco visible para navegación por teclado. */
   :focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+    outline: 2px solid var(--accent-blue);
+    outline-offset: 4px;
   }
 
-  /* Cuando Lenis toma el control desactiva el smooth nativo para no duplicarlo. */
+  /* Lenis: desactiva el smooth nativo para no duplicar el efecto. */
   html.lenis,
   html.lenis body {
     height: auto;
@@ -101,42 +60,57 @@
 }
 
 @layer components {
-  /* Contenedor estandar de seccion: mismo ritmo vertical en todo el sitio. */
-  .section-shell {
-    @apply container scroll-mt-24 py-20 md:py-28;
+  /* Ancho y respiración estándar de todas las secciones. */
+  .shell {
+    @apply mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-16;
   }
 
-  /* Etiqueta pequena en mayusculas que precede a cada titulo de seccion. */
-  .section-eyebrow {
-    @apply mb-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary;
+  /* Etiqueta pequeña en mayúsculas que precede a los títulos. */
+  .eyebrow {
+    @apply text-label font-medium uppercase text-text-muted;
   }
 
-  .section-title {
-    @apply text-display-md text-foreground;
-  }
-
-  .section-subtitle {
-    @apply mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground;
+  /*
+    Contenedor de una letra animada del hero.
+    `inline-block` es imprescindible: GSAP no puede transformar elementos
+    inline, y sin `will-change` el navegador repinta en cada frame.
+  */
+  .letter {
+    @apply inline-block will-change-transform;
+    /* Arranca invisible para que no se vea un fogonazo del texto ya
+       colocado antes de que GSAP lo baje. El <noscript> del layout lo
+       devuelve a visible si no hay JavaScript. */
+    opacity: 0;
   }
 }
 
 @layer utilities {
-  /* Degradado sutil usado en el hero y en los bordes de las tarjetas. */
-  .text-gradient {
-    @apply bg-gradient-to-br from-foreground via-foreground to-primary bg-clip-text text-transparent;
+  /* Título en contorno: relleno transparente + borde de texto. */
+  .text-outline {
+    -webkit-text-stroke: 2px #ffffff;
+    color: transparent;
   }
 
-  .bg-grid {
-    background-image:
-      linear-gradient(to right, hsl(var(--border) / 0.35) 1px, transparent 1px),
-      linear-gradient(to bottom, hsl(var(--border) / 0.35) 1px, transparent 1px);
-    background-size: 64px 64px;
+  @media (max-width: 768px) {
+    .text-outline {
+      -webkit-text-stroke-width: 1.5px;
+    }
+  }
+
+  /* Perspectiva para el mockup 3D del hero. */
+  .perspective {
+    perspective: 1200px;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
   }
 }
 
 /* ------------------------------------------------------------------
-   ACCESIBILIDAD: si el sistema pide menos movimiento, apagamos todo.
-   GSAP y Framer Motion tambien lo respetan desde el codigo.
+   ACCESIBILIDAD
+   Si el sistema pide menos movimiento, se apaga todo: animaciones CSS,
+   cursor personalizado y parallax. GSAP lo comprueba también por código.
 ------------------------------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
   *,

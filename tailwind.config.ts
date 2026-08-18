@@ -1,98 +1,76 @@
 import type { Config } from 'tailwindcss';
 
 /**
- * Todos los colores se leen desde variables CSS definidas en `app/globals.css`.
- * Ventaja: el tema claro/oscuro cambia solo, sin duplicar clases en los componentes.
+ * =====================================================================
+ * BRIK STUDIO — sistema de diseño V2
+ * ---------------------------------------------------------------------
+ * Tema oscuro único, sin toggle. Los colores son literales (no variables
+ * CSS) porque el sitio ya no cambia de tema: menos indirección, más
+ * fácil de leer al editar.
+ * =====================================================================
  */
 const config: Config = {
-  darkMode: ['class'],
-  content: [
-    './app/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './data/**/*.{ts,tsx}',
-  ],
+  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './data/**/*.{ts,tsx}'],
   theme: {
-    container: {
-      center: true,
-      padding: {
-        DEFAULT: '1.25rem',
-        sm: '1.5rem',
-        lg: '2rem',
-      },
-      screens: {
-        '2xl': '1200px',
-      },
-    },
     extend: {
       colors: {
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        border: 'hsl(var(--border))',
-        ring: 'hsl(var(--ring))',
-        surface: {
-          DEFAULT: 'hsl(var(--surface))',
-          elevated: 'hsl(var(--surface-elevated))',
+        background: {
+          primary: '#0a0a0a', // fondo base de casi todo el sitio
+          secondary: '#111111', // rompe el ritmo (sección "Nosotros")
+          card: '#141414',
+          border: '#1f2937',
         },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+        text: {
+          primary: '#ffffff',
+          secondary: '#9ca3af',
+          muted: '#4b5563',
         },
-        primary: {
-          DEFAULT: 'hsl(var(--primary))', // texto, iconos y bordes
-          solid: 'hsl(var(--primary-solid))', // rellenos con texto blanco encima
-          foreground: 'hsl(var(--primary-foreground))',
-        },
-        whatsapp: {
-          DEFAULT: 'hsl(var(--whatsapp))',
-          foreground: 'hsl(var(--whatsapp-foreground))',
+        accent: {
+          blue: '#3b82f6',
+          'blue-hover': '#60a5fa',
+          whatsapp: '#25d366',
         },
       },
       fontFamily: {
-        // --font-geist-sans / --font-inter se inyectan en app/layout.tsx
-        heading: ['var(--font-geist-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         sans: ['var(--font-inter)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       fontSize: {
-        // Escala fluida: crece con el viewport sin media queries.
-        'display-lg': ['clamp(2.75rem, 1.6rem + 5.4vw, 4rem)', { lineHeight: '1.04', letterSpacing: '-0.035em' }],
-        'display-md': ['clamp(2rem, 1.4rem + 2.8vw, 3rem)', { lineHeight: '1.08', letterSpacing: '-0.03em' }],
-        'display-sm': ['clamp(1.6rem, 1.3rem + 1.4vw, 2rem)', { lineHeight: '1.15', letterSpacing: '-0.02em' }],
+        // Escala fluida. El segundo valor son los ajustes finos de cada nivel.
+        display: ['clamp(4.5rem, 10vw, 8.75rem)', { lineHeight: '0.88', letterSpacing: '-0.045em' }],
+        'display-sm': ['clamp(3.5rem, 15vw, 5rem)', { lineHeight: '0.9', letterSpacing: '-0.04em' }],
+        h1: ['clamp(3rem, 7vw, 6rem)', { lineHeight: '0.95', letterSpacing: '-0.03em' }],
+        h2: ['clamp(2rem, 4vw, 2.5rem)', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
+        statement: ['clamp(1.75rem, 4vw, 3.5rem)', { lineHeight: '1.2', letterSpacing: '-0.02em' }],
+        label: ['0.75rem', { lineHeight: '1', letterSpacing: '0.25em' }],
       },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 4px)',
-        sm: 'calc(var(--radius) - 8px)',
-      },
-      boxShadow: {
-        card: '0 2px 12px -4px hsl(var(--shadow-color) / 0.35)',
-        'card-hover': '0 28px 60px -20px hsl(var(--shadow-color) / 0.55)',
-        glow: '0 0 0 1px hsl(var(--primary) / 0.35), 0 18px 45px -18px hsl(var(--primary) / 0.65)',
+      spacing: {
+        section: 'clamp(6rem, 12vw, 11rem)', // ritmo vertical entre secciones
       },
       transitionTimingFunction: {
-        // Curva "premium": arranca rapido y frena suave. Sin rebote.
-        smooth: 'cubic-bezier(0.16, 1, 0.3, 1)',
+        // Entra rápido, frena muy suave. La curva de todo el sitio.
+        smooth: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+        expo: 'cubic-bezier(0.16, 1, 0.3, 1)',
       },
       keyframes: {
         'pulse-ring': {
-          '0%': { boxShadow: '0 0 0 0 hsl(var(--whatsapp) / 0.5)' },
-          '70%': { boxShadow: '0 0 0 16px hsl(var(--whatsapp) / 0)' },
-          '100%': { boxShadow: '0 0 0 0 hsl(var(--whatsapp) / 0)' },
+          '0%': { boxShadow: '0 0 0 0 rgba(37, 211, 102, 0.45)' },
+          '70%': { boxShadow: '0 0 0 18px rgba(37, 211, 102, 0)' },
+          '100%': { boxShadow: '0 0 0 0 rgba(37, 211, 102, 0)' },
         },
-        'accordion-down': {
-          from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' },
-        },
-        'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' },
+        'scroll-line': {
+          '0%': { transform: 'scaleY(0)', transformOrigin: 'top' },
+          '45%': { transform: 'scaleY(1)', transformOrigin: 'top' },
+          '55%': { transform: 'scaleY(1)', transformOrigin: 'bottom' },
+          '100%': { transform: 'scaleY(0)', transformOrigin: 'bottom' },
         },
       },
       animation: {
-        'pulse-ring': 'pulse-ring 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'pulse-ring': 'pulse-ring 2.6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'scroll-line': 'scroll-line 2.2s ease-in-out infinite',
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [],
 };
 
 export default config;

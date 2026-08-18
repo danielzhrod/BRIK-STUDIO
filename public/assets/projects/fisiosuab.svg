@@ -1,88 +1,92 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000" role="img" aria-label="Vista previa de la landing page de FisioSuab">
-  <title>FisioSuab — Clínica de fisioterapia</title>
+  <title>FisioSuab — Clínica de fisioterapia en Valladolid</title>
 
   <defs>
-    <linearGradient id="fs-hero" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#F7D5C8"/>
-      <stop offset="1" stop-color="#F4BEAF"/>
+    <!-- Tres franjas fotográficas insinuadas bajo el velo burdeos -->
+    <linearGradient id="ph1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8d7f86"/><stop offset="1" stop-color="#4a3a42"/>
     </linearGradient>
-    <linearGradient id="fs-blob" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#C4758A"/>
-      <stop offset="1" stop-color="#7B3348"/>
+    <linearGradient id="ph2" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#b9a8ac"/><stop offset="1" stop-color="#6b555f"/>
     </linearGradient>
-    <clipPath id="fs-round">
-      <rect x="820" y="168" width="700" height="500" rx="32"/>
-    </clipPath>
+    <linearGradient id="ph3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9d8a86"/><stop offset="1" stop-color="#5a4046"/>
+    </linearGradient>
+    <linearGradient id="veil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5C2A3C" stop-opacity="0.80"/>
+      <stop offset="1" stop-color="#5C2A3C" stop-opacity="0.92"/>
+    </linearGradient>
   </defs>
 
-  <rect width="1600" height="1000" fill="#FFFFFF"/>
+  <rect width="1600" height="1000" fill="#5C2A3C"/>
+
+  <!-- ===== Fondo: tres imágenes en franjas ===== -->
+  <rect x="0"    y="0" width="534" height="1000" fill="url(#ph1)"/>
+  <rect x="534"  y="0" width="534" height="1000" fill="url(#ph2)"/>
+  <rect x="1068" y="0" width="532" height="1000" fill="url(#ph3)"/>
+  <!-- Formas insinuando el equipo de ecografía y las pesas -->
+  <circle cx="270" cy="640" r="150" fill="#3d2f35" opacity="0.5"/>
+  <rect x="150" y="330" width="300" height="190" rx="10" fill="#2f2f3a" opacity="0.55"/>
+  <circle cx="1240" cy="560" r="120" fill="#7d9c5a" opacity="0.35"/>
+  <circle cx="1420" cy="700" r="140" fill="#c96a52" opacity="0.30"/>
+  <rect x="0" y="0" width="1600" height="1000" fill="url(#veil)"/>
 
   <!-- ===== Barra de navegación ===== -->
-  <rect x="0" y="0" width="1600" height="92" fill="#FFFFFF"/>
-  <line x1="0" y1="92" x2="1600" y2="92" stroke="#F0E4E4" stroke-width="1"/>
-  <circle cx="96" cy="46" r="15" fill="#7B3348"/>
-  <text x="122" y="53" font-family="Inter, 'Segoe UI', sans-serif" font-size="20" font-weight="700" letter-spacing="1.5" fill="#5C2A3C">FISIOSUAB</text>
-  <g font-family="Inter, 'Segoe UI', sans-serif" font-size="15" fill="#9C5470">
-    <text x="1000" y="52">Servicios</text>
-    <text x="1114" y="52">Equipo</text>
-    <text x="1206" y="52">Contacto</text>
+  <rect x="352" y="22" width="42" height="42" rx="12" fill="#ffffff" opacity="0.92"/>
+  <path d="M373 34c5 6 5 12 0 18-5-6-5-12 0-18z" fill="#7B3348"/>
+  <text x="406" y="52" font-family="Inter, 'Segoe UI', sans-serif" font-size="21" font-weight="800" letter-spacing="0.5" fill="#ffffff">FISIOSUAB</text>
+  <g font-family="Inter, 'Segoe UI', sans-serif" font-size="15" fill="#ffffff" opacity="0.88">
+    <text x="686" y="49">Nosotros</text>
+    <text x="792" y="49">Servicios</text>
+    <text x="900" y="49">Instalaciones</text>
+    <text x="1040" y="49">Reseñas</text>
+    <text x="1144" y="49">Contacto</text>
+    <text x="1250" y="49">Ubicación</text>
+    <text x="1368" y="49">Instagram</text>
   </g>
-  <rect x="1330" y="26" width="176" height="42" rx="21" fill="#7B3348"/>
-  <text x="1418" y="53" text-anchor="middle" font-family="Inter, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#FFFFFF">Pedir cita</text>
+  <rect x="1478" y="24" width="140" height="38" rx="19" fill="#ffffff" opacity="0.16"/>
+  <circle cx="1502" cy="43" r="7" fill="none" stroke="#ffffff" stroke-width="1.6"/>
+  <text x="1516" y="49" font-family="Inter, 'Segoe UI', sans-serif" font-size="14" font-weight="600" fill="#ffffff">603 92 69 54</text>
 
-  <!-- ===== Hero: columna de texto ===== -->
-  <rect x="80" y="186" width="272" height="38" rx="19" fill="#F7D5C8"/>
-  <circle cx="105" cy="205" r="5" fill="#E8907C"/>
-  <text x="122" y="211" font-family="Inter, 'Segoe UI', sans-serif" font-size="14" font-weight="600" letter-spacing="0.6" fill="#7B3348">Fisioterapia en Valladolid</text>
+  <!-- ===== Etiqueta superior ===== -->
+  <rect x="610" y="182" width="300" height="40" rx="20" fill="#ffffff" opacity="0.14"/>
+  <circle cx="634" cy="202" r="6" fill="#E8907C"/>
+  <text x="650" y="208" font-family="Inter, 'Segoe UI', sans-serif" font-size="15" fill="#ffffff">Clínica de Fisioterapia · Valladolid</text>
 
-  <text x="80" y="330" font-family="Inter, 'Segoe UI', sans-serif" font-size="68" font-weight="800" letter-spacing="-2" fill="#5C2A3C">Tu recuperación,</text>
-  <text x="80" y="410" font-family="Inter, 'Segoe UI', sans-serif" font-size="68" font-weight="800" letter-spacing="-2" fill="#C4758A">nuestra prioridad</text>
+  <!-- ===== Titular ===== -->
+  <text x="610" y="330" font-family="Inter, 'Segoe UI', sans-serif" font-size="76" font-weight="800" letter-spacing="-2.5" fill="#ffffff">Tu recuperación,</text>
+  <text x="610" y="418" font-family="Inter, 'Segoe UI', sans-serif" font-size="76" font-weight="800" letter-spacing="-2.5" fill="#EFA491">nuestra prioridad</text>
 
-  <g fill="#9C5470" opacity="0.5">
-    <rect x="80" y="460" width="600" height="12" rx="6"/>
-    <rect x="80" y="488" width="540" height="12" rx="6"/>
-    <rect x="80" y="516" width="420" height="12" rx="6"/>
+  <!-- ===== Subtítulo ===== -->
+  <g font-family="Inter, 'Segoe UI', sans-serif" font-size="19" fill="#ffffff" opacity="0.86">
+    <text x="610" y="482">Fisioterapia avanzada, personalizada y con tecnología de</text>
+    <text x="610" y="514">vanguardia. Especialistas en suelo pélvico, embarazo,</text>
+    <text x="610" y="546">postparto y rehabilitación integral.</text>
   </g>
 
-  <rect x="80" y="572" width="212" height="58" rx="29" fill="#7B3348"/>
-  <text x="186" y="608" text-anchor="middle" font-family="Inter, 'Segoe UI', sans-serif" font-size="17" font-weight="600" fill="#FFFFFF">Reservar cita</text>
-  <rect x="308" y="572" width="196" height="58" rx="29" fill="none" stroke="#E8B4C0" stroke-width="2"/>
-  <text x="406" y="608" text-anchor="middle" font-family="Inter, 'Segoe UI', sans-serif" font-size="17" font-weight="600" fill="#7B3348">Servicios</text>
+  <!-- ===== Botones ===== -->
+  <rect x="610" y="596" width="318" height="58" rx="29" fill="#8E3F55"/>
+  <circle cx="646" cy="625" r="9" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+  <text x="668" y="632" font-family="Inter, 'Segoe UI', sans-serif" font-size="17" font-weight="600" fill="#ffffff">Reservar cita — 603 92 69 54</text>
+  <rect x="948" y="596" width="192" height="58" rx="29" fill="none" stroke="#ffffff" stroke-opacity="0.45" stroke-width="1.5"/>
+  <text x="1044" y="632" text-anchor="middle" font-family="Inter, 'Segoe UI', sans-serif" font-size="17" font-weight="600" fill="#ffffff">Ver servicios</text>
 
-  <!-- ===== Hero: imagen ===== -->
-  <g clip-path="url(#fs-round)">
-    <rect x="820" y="168" width="700" height="500" fill="url(#fs-hero)"/>
-    <circle cx="1230" cy="470" r="230" fill="url(#fs-blob)" opacity="0.55"/>
-    <circle cx="1080" cy="300" r="120" fill="#FFFFFF" opacity="0.28"/>
-    <path d="M820 560 Q1010 470 1200 545 T1520 500 V668 H820 Z" fill="#5C2A3C" opacity="0.35"/>
-  </g>
-  <!-- Tarjeta flotante sobre la imagen -->
-  <rect x="856" y="536" width="290" height="96" rx="18" fill="#FFFFFF"/>
-  <circle cx="900" cy="584" r="20" fill="#F7D5C8"/>
-  <path d="M892 584 l6 7 l12 -14" fill="none" stroke="#7B3348" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="934" y="566" width="150" height="11" rx="5.5" fill="#5C2A3C" opacity="0.85"/>
-  <rect x="934" y="590" width="108" height="10" rx="5" fill="#9C5470" opacity="0.45"/>
+  <!-- ===== Reseñas de Google ===== -->
+  <circle cx="622" cy="716" r="15" fill="#ffffff"/>
+  <text x="616" y="722" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#4285F4">G</text>
+  <text x="648" y="723" font-family="Inter, 'Segoe UI', sans-serif" font-size="15" fill="#FFC93C">★★★★★</text>
+  <text x="742" y="723" font-family="Inter, 'Segoe UI', sans-serif" font-size="15" fill="#ffffff" opacity="0.9">5.0 · 51 reseñas verificadas en Google</text>
 
-  <!-- ===== Tarjetas de servicios ===== -->
-  <g>
-    <rect x="80" y="742" width="452" height="196" rx="20" fill="#FFFFFF" stroke="#F0E4E4" stroke-width="2"/>
-    <rect x="116" y="778" width="44" height="44" rx="12" fill="#F7D5C8"/>
-    <rect x="116" y="846" width="200" height="14" rx="7" fill="#5C2A3C" opacity="0.85"/>
-    <rect x="116" y="876" width="330" height="10" rx="5" fill="#9C5470" opacity="0.4"/>
-    <rect x="116" y="898" width="264" height="10" rx="5" fill="#9C5470" opacity="0.4"/>
-  </g>
-  <g>
-    <rect x="574" y="742" width="452" height="196" rx="20" fill="#FFFFFF" stroke="#F0E4E4" stroke-width="2"/>
-    <rect x="610" y="778" width="44" height="44" rx="12" fill="#F4BEAF"/>
-    <rect x="610" y="846" width="230" height="14" rx="7" fill="#5C2A3C" opacity="0.85"/>
-    <rect x="610" y="876" width="330" height="10" rx="5" fill="#9C5470" opacity="0.4"/>
-    <rect x="610" y="898" width="288" height="10" rx="5" fill="#9C5470" opacity="0.4"/>
-  </g>
-  <g>
-    <rect x="1068" y="742" width="452" height="196" rx="20" fill="#7B3348"/>
-    <rect x="1104" y="778" width="44" height="44" rx="12" fill="#FFFFFF" opacity="0.2"/>
-    <rect x="1104" y="846" width="184" height="14" rx="7" fill="#FFFFFF" opacity="0.9"/>
-    <rect x="1104" y="876" width="330" height="10" rx="5" fill="#FFFFFF" opacity="0.4"/>
-    <rect x="1104" y="898" width="248" height="10" rx="5" fill="#FFFFFF" opacity="0.4"/>
-  </g>
+  <!-- ===== Estadísticas ===== -->
+  <text x="610" y="800" font-family="Inter, 'Segoe UI', sans-serif" font-size="40" font-weight="800" fill="#ffffff">4+</text>
+  <text x="666" y="800" font-family="Inter, 'Segoe UI', sans-serif" font-size="15" fill="#ffffff" opacity="0.8">Años de experiencia</text>
+  <text x="866" y="800" font-family="Inter, 'Segoe UI', sans-serif" font-size="40" font-weight="800" fill="#ffffff">+200</text>
+  <text x="960" y="800" font-family="Inter, 'Segoe UI', sans-serif" font-size="15" fill="#ffffff" opacity="0.8">Pacientes tratados</text>
+  <line x1="1130" y1="770" x2="1130" y2="806" stroke="#ffffff" stroke-opacity="0.25"/>
+  <text x="1160" y="800" font-family="Inter, 'Segoe UI', sans-serif" font-size="40" font-weight="800" fill="#ffffff">5.0★</text>
+  <text x="1256" y="800" font-family="Inter, 'Segoe UI', sans-serif" font-size="15" fill="#ffffff" opacity="0.8">Google Reviews</text>
+
+  <!-- ===== Indicador inferior ===== -->
+  <text x="800" y="922" text-anchor="middle" font-family="Inter, 'Segoe UI', sans-serif" font-size="12" letter-spacing="4" fill="#ffffff" opacity="0.55">DESCUBRIR</text>
+  <line x1="800" y1="938" x2="800" y2="972" stroke="#ffffff" stroke-opacity="0.35"/>
 </svg>
