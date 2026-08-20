@@ -118,6 +118,7 @@ en `public/assets/projects/` y cambia la extensión en `data/projects.ts`.
 | Burbuja que envuelve el CTA | rAF + `getBoundingClientRect` | `MagneticCursor.tsx` |
 | Partículas que huyen del ratón | Canvas puro | `ParticleField.tsx` |
 | Scroll suave | Lenis sincronizado con GSAP | `SmoothScroll.tsx` |
+| Menú que se descifra | `setInterval` + letras al azar | `Navigation.tsx` |
 
 ### Cinco trampas que ya costaron caras
 
@@ -172,7 +173,9 @@ components/
   SiteBackground   Capa fija: degradado + partículas
   Hero · Projects · Services · About · Contact
   MagneticCursor · ParticleField · SplitText
-  Navigation · Footer · Logo · SmoothScroll
+  Navigation      Barra + menú a pantalla completa con descifrado
+  EmailButton     Selector Gmail / Outlook / app de correo
+  Footer · Logo · SmoothScroll
 data/              ← config, projects, services
 lib/               gsap (registro + constantes), utils (cn)
 public/assets/     Logo e imágenes de proyectos

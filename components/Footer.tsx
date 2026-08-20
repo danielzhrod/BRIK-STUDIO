@@ -39,6 +39,16 @@ export function Footer() {
         >
           {config.whatsapp}
         </a>
+
+        {config.email && (
+          <a
+            href={`mailto:${config.email}`}
+            data-cursor="link"
+            className="text-sm text-text-muted transition-colors duration-300 hover:text-white"
+          >
+            {config.email}
+          </a>
+        )}
       </div>
 
       <div className="shell border-t border-background-border py-6">

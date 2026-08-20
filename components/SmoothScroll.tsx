@@ -52,10 +52,26 @@ export function SmoothScroll() {
       lenis.scrollTo(target as HTMLElement, { offset: -80 }); // 80px = alto del navbar
     };
 
+    /*
+      Interruptor para bloquear el scroll desde otros componentes (el menú
+      a pantalla completa). Va por eventos y no por contexto de React para
+      que Lenis siga siendo dueño único de su instancia.
+
+      Poner `document.body.style.overflow = 'hidden'` NO basta: Lenis mueve
+      el contenido con transform, no con el scroll nativo, así que seguiría
+      deslizándose por detrás del difuminado.
+    */
+    const stop = () => lenis.stop();
+    const start = () => lenis.start();
+    window.addEventListener('lenis:stop', stop);
+    window.addEventListener('lenis:start', start);
+
     document.addEventListener('click', onClick);
 
     return () => {
       document.removeEventListener('click', onClick);
+      window.removeEventListener('lenis:stop', stop);
+      window.removeEventListener('lenis:start', start);
       gsap.ticker.remove(raf);
       lenis.destroy();
     };

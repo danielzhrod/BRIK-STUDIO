@@ -44,7 +44,7 @@ export function Hero() {
         parte de arriba la que se hunde y rebota, como un bloque que encaja.
       */
       const letters = gsap.utils.toArray<HTMLElement>('.letter');
-      const FLIGHT = 0.42;
+      const FLIGHT = 0.6;
       const HIT = 0.08;
 
       letters.forEach((letter, index) => {
@@ -59,7 +59,7 @@ export function Hero() {
           .fromTo(
             letter,
             { x: drift, y: -210, rotate: spin, scale: 1.12 },
-            { x: 0, y: 0, rotate: 0, scale: 1, duration: FLIGHT, ease: 'power2.in' },
+            { x: 0, y: 0, rotate: 0, scale: 1, duration: FLIGHT, ease: 'power1.in' },
             0,
           )
           .fromTo(letter, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.16, ease: 'none' }, 0)
@@ -70,7 +70,7 @@ export function Hero() {
             FLIGHT + HIT,
           );
 
-        timeline.add(brick, 0.25 + index * 0.065);
+        timeline.add(brick, 0.25 + index * 0.085);
       });
 
       timeline

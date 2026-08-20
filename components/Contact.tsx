@@ -3,6 +3,7 @@
 import { useRef } from 'react';
 
 import { config, whatsappUrl } from '@/data/config';
+import { EmailButton } from '@/components/EmailButton';
 import { gsap, MOTION, prefersReducedMotion, useIsomorphicLayoutEffect } from '@/lib/gsap';
 
 /**
@@ -58,7 +59,7 @@ export function Contact() {
           Cuéntanos qué necesita tu negocio.
         </p>
 
-        <div data-anim className="invisible mt-12">
+        <div data-anim className="invisible mt-12 flex flex-wrap items-center gap-4">
           <a
             href={whatsappUrl}
             target="_blank"
@@ -72,20 +73,14 @@ export function Contact() {
             </svg>
             Hola BRIK STUDIO
           </a>
+
+          <EmailButton />
         </div>
 
         <p data-anim className="invisible mt-8 text-sm text-text-muted">
           {config.whatsapp}
         </p>
-        <p data-anim className="invisible mt-2 text-sm text-text-muted">
-          {config.email ? (
-            <a href={`mailto:${config.email}`} data-cursor="link" className="hover:text-white">
-              {config.email}
-            </a>
-          ) : (
-            'Email disponible próximamente'
-          )}
-        </p>
+
       </div>
     </section>
   );

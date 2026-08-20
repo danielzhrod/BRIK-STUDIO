@@ -24,7 +24,7 @@ export const config = {
     'Hola BRIK STUDIO 👋 Me gustaría información sobre una web para mi negocio.',
 
   /** Déjalo vacío hasta tener la dirección: el bloque se adapta solo. */
-  email: '',
+  email: 'brikstudio@hotmail.com',
 
   website: 'https://brik-studio.vercel.app',
   location: 'España · Trabajamos en remoto',

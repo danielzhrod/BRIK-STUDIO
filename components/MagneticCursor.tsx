@@ -5,11 +5,11 @@ import { useEffect, useRef } from 'react';
 import { BP, gsap, hasFinePointer, prefersReducedMotion } from '@/lib/gsap';
 
 /** Distancia a la que un botón empieza a notar la atracción del ratón. */
-const MAGNETIC_RADIUS = 80;
+const MAGNETIC_RADIUS = 48;
 /** Cuánto se deja arrastrar el botón (0 = nada, 1 = pegado al ratón). */
-const MAGNETIC_STRENGTH = 0.4;
+const MAGNETIC_STRENGTH = 0.18;
 /** Tope de desplazamiento para que nunca se despegue de su sitio. */
-const MAGNETIC_MAX = 15;
+const MAGNETIC_MAX = 7;
 /** Margen que la burbuja deja alrededor del botón que envuelve. */
 const BUBBLE_PADDING = 14;
 /** Crema del blob. Con `difference` es lo que invierte lo que hay debajo. */
