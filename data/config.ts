@@ -14,17 +14,22 @@ export const config = {
 
   /**
    * WhatsApp.
-   * - `whatsapp` es como se muestra en pantalla.
-   * - `whatsappNumber` es el mismo número SOLO con dígitos, que es el
-   *   formato que exige la API de wa.me (sin +, sin espacios).
+   * Solo guardamos el número en el formato que exige la API de wa.me
+   * (dígitos pelados). NO hay versión "bonita" para mostrar: el número no
+   * se escribe en ninguna parte de la web, solo vive dentro del enlace.
    */
-  whatsapp: '+34 681 066 861',
   whatsappNumber: '34681066861',
   whatsappMessage:
     'Hola BRIK STUDIO 👋 Me gustaría información sobre una web para mi negocio.',
 
-  /** Déjalo vacío hasta tener la dirección: el bloque se adapta solo. */
-  email: 'brikstudio@hotmail.com',
+  /*
+    Correo partido en dos A PROPÓSITO.
+    Escrito entero, un robot de spam lo encuentra rastreando el HTML.
+    EmailButton junta las dos mitades en el momento del clic, así la
+    dirección nunca aparece completa en el código servido.
+  */
+  emailUser: 'brikstudio',
+  emailDomain: 'hotmail.com',
 
   website: 'https://brik-studio.vercel.app',
   location: 'España · Trabajamos en remoto',

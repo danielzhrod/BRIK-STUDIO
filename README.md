@@ -88,8 +88,12 @@ cabe en un móvil. Cada tarjeta de proyecto enseña entonces su captura en líne
 
 Todo el contenido vive en `data/`. No hace falta tocar los componentes.
 
-- **`data/config.ts`** — nombre, WhatsApp, email, enlaces del menú.
-  `whatsappNumber` va solo con dígitos: es lo que exige la API de wa.me.
+- **`data/config.ts`** — nombre, WhatsApp, correo, enlaces del menú.
+
+  Ni el teléfono ni el correo se escriben en ninguna parte de la web. El número
+  vive solo dentro del enlace `wa.me`, y el correo está **partido en dos**
+  (`emailUser` + `emailDomain`): `EmailButton` lo junta al pulsar, así no
+  aparece entero en el código y los robots de spam no lo rastrean.
 - **`data/projects.ts`** — proyectos.
 - **`data/services.ts`** — servicios. `icon` acepta `'web'` o `'shop'`.
 
@@ -108,7 +112,7 @@ en `public/assets/projects/` y cambia la extensión en `data/projects.ts`.
 
 | Efecto | Con qué | Dónde |
 | --- | --- | --- |
-| Letras lanzadas como ladrillos | GSAP, una línea por letra | `Hero.tsx` |
+| Ladrillos que caen y paran en seco | GSAP, una línea por letra | `Hero.tsx` |
 | Giro de dos vueltas al cargar | GSAP `rotateY: 720` | `FloatingWindow.tsx` |
 | Arcos entre secciones | `MotionPathPlugin` + `scrub` | `FloatingWindow.tsx` |
 | Entradas al hacer scroll | GSAP `ScrollTrigger` | `Projects.tsx`, `Services.tsx` |
@@ -118,7 +122,7 @@ en `public/assets/projects/` y cambia la extensión en `data/projects.ts`.
 | Burbuja que envuelve el CTA | rAF + `getBoundingClientRect` | `MagneticCursor.tsx` |
 | Partículas que huyen del ratón | Canvas puro | `ParticleField.tsx` |
 | Scroll suave | Lenis sincronizado con GSAP | `SmoothScroll.tsx` |
-| Menú que se descifra | `setInterval` + letras al azar | `Navigation.tsx` |
+
 
 ### Cinco trampas que ya costaron caras
 

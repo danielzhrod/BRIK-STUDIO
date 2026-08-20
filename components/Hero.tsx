@@ -4,6 +4,7 @@ import { useRef } from 'react';
 
 import { config, whatsappUrl } from '@/data/config';
 import { SplitText } from '@/components/SplitText';
+import { EmailButton } from '@/components/EmailButton';
 import { gsap, MOTION, prefersReducedMotion, useIsomorphicLayoutEffect } from '@/lib/gsap';
 
 /**
@@ -33,44 +34,63 @@ export function Hero() {
       const timeline = gsap.timeline({ defaults: { ease: MOTION.easeStrong } });
 
       /*
-        LETRAS COMO LADRILLOS
-        La curva lo decide todo: con una curva `out` la letra desacelera
-        y se posa suave. Va con `power2.in`, que ACELERA hasta el impacto,
-        como cualquier cosa lanzada contra una pared. Y el aplastamiento
-        arranca justo al acabar el vuelo: si queda hueco, se lee como un
-        temblor tardío en vez de como un golpe.
+        LETRAS COMO LADRILLOS QUE CAEN Y PARAN EN SECO
+        ---------------------------------------------------------------
+        Tres cosas mandan aquí, y las tres tienen que ir a la vez:
 
-        `transformOrigin` en la base deja el pie clavado y hace que sea la
-        parte de arriba la que se hunde y rebota, como un bloque que encaja.
+        1. CAEN, no vuelan. El desplazamiento lateral es mínimo (±12px)
+           frente a 320px de caída. Antes eran 200px de lado contra 210
+           de alto: cada letra llegaba en diagonal, como si entrara
+           volando en vez de desplomarse.
+
+        2. ACELERAN hasta el golpe. `power3.in` es una curva que arranca
+           lenta y llega disparada, como cualquier cosa que se cae. Con
+           una curva suave la letra frena sola en el aire y se posa.
+
+        3. PARAN EN SECO. La recuperación va en 0.16s con `power2.out`,
+           SIN rebote elástico. Un elástico deja la letra temblando medio
+           segundo y eso se lee como gelatina, no como un ladrillo. Es lo
+           que faltaba en los intentos anteriores.
+
+        `transformOrigin` en la base deja el pie clavado: es la parte de
+        arriba la que se hunde y vuelve, como un bloque encajando.
       */
       const letters = gsap.utils.toArray<HTMLElement>('.letter');
-      const FLIGHT = 0.6;
-      const HIT = 0.08;
+
+      const FALL = 0.34; // caída
+      const HIT = 0.07; // aplastamiento contra el suelo
+      const RISE = 0.16; // recuperación seca, sin temblor
 
       letters.forEach((letter, index) => {
-        const fromLeft = index % 2 === 0;
-        const spin = gsap.utils.random(38, 72) * (fromLeft ? -1 : 1);
-        const drift = gsap.utils.random(150, 230) * (fromLeft ? -1 : 1);
+        const side = index % 2 === 0 ? -1 : 1;
+        // Variación mínima por letra: que no parezcan clonadas, pero sin
+        // que ninguna deje de leerse como una caída vertical.
+        const tilt = gsap.utils.random(4, 9) * side;
+        const drift = gsap.utils.random(8, 16) * side;
 
         gsap.set(letter, { transformOrigin: '50% 100%' });
 
         const brick = gsap
           .timeline()
+          // 1. Caída: acelera hasta estrellarse en su sitio.
           .fromTo(
             letter,
-            { x: drift, y: -210, rotate: spin, scale: 1.12 },
-            { x: 0, y: 0, rotate: 0, scale: 1, duration: FLIGHT, ease: 'power1.in' },
+            { y: -320, x: drift, rotate: tilt, scale: 1.06 },
+            { y: 0, x: 0, rotate: 0, scale: 1, duration: FALL, ease: 'power3.in' },
             0,
           )
-          .fromTo(letter, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.16, ease: 'none' }, 0)
-          .to(letter, { scaleY: 0.78, scaleX: 1.14, duration: HIT, ease: 'power2.out' }, FLIGHT)
-          .to(
-            letter,
-            { scaleY: 1, scaleX: 1, duration: 0.62, ease: 'elastic.out(1.1, 0.38)' },
-            FLIGHT + HIT,
-          );
+          // Aparece enseguida, no a mitad de la caída.
+          .fromTo(letter, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.12, ease: 'none' }, 0)
+          // 2. Impacto: se achata de golpe contra la línea de base.
+          //    El ensanchado se queda en 1.06 y no más: con el tracking
+          //    negativo del titular, estirar más hace que las letras del
+          //    contorno de STUDIO se solapen entre sí.
+          .to(letter, { scaleY: 0.72, scaleX: 1.06, duration: HIT, ease: 'power2.out' }, FALL)
+          // 3. Se recompone y se queda quieta. Aquí NO va un elástico.
+          .to(letter, { scaleY: 1, scaleX: 1, duration: RISE, ease: 'power2.out' }, FALL + HIT);
 
-        timeline.add(brick, 0.25 + index * 0.085);
+        // Un ladrillo detrás de otro, no todos a la vez.
+        timeline.add(brick, 0.25 + index * 0.075);
       });
 
       timeline
@@ -125,6 +145,8 @@ export function Hero() {
           >
             WhatsApp
           </a>
+
+          <EmailButton />
         </div>
       </div>
     </section>

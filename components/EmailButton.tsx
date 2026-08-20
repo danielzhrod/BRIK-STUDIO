@@ -8,42 +8,55 @@ const SUBJECT = 'Consulta para BRIK STUDIO';
 const BODY = 'Hola BRIK STUDIO,\n\nMe gustaría información sobre una web para mi negocio.\n\n';
 
 /**
- * Los tres destinos posibles.
+ * Junta las dos mitades de la dirección.
  *
- * Gmail y Outlook abren su redactor en el navegador, con destinatario,
- * asunto y cuerpo ya rellenos. La tercera opción usa `mailto:`, que
- * delega en el programa de correo que tenga configurado el sistema
- * (Mail, Thunderbird, Outlook de escritorio…).
+ * Vive dentro de una función y no en una constante del módulo para que la
+ * dirección completa no aparezca como una cadena suelta en el paquete de
+ * JavaScript. Se llama solo cuando alguien pulsa una opción.
  */
-const TARGETS = [
-  {
-    id: 'gmail',
-    label: 'Gmail',
-    href: `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(config.email)}&su=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(BODY)}`,
-    external: true,
-  },
-  {
-    id: 'outlook',
-    label: 'Outlook',
-    href: `https://outlook.live.com/mail/0/deeplink/compose?to=${encodeURIComponent(config.email)}&subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(BODY)}`,
-    external: true,
-  },
-  {
-    id: 'mailto',
-    label: 'Mi aplicación de correo',
-    href: `mailto:${config.email}?subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(BODY)}`,
-    external: false,
-  },
-] as const;
+const address = () => `${config.emailUser}@${config.emailDomain}`;
+
+type TargetId = 'gmail' | 'outlook' | 'mailto';
+
+const TARGETS: { id: TargetId; label: string }[] = [
+  { id: 'gmail', label: 'Gmail' },
+  { id: 'outlook', label: 'Outlook' },
+  { id: 'mailto', label: 'Mi aplicación de correo' },
+];
+
+/** Construye la URL del redactor elegido, ya con todo relleno. */
+function composeUrl(target: TargetId): string {
+  const to = encodeURIComponent(address());
+  const subject = encodeURIComponent(SUBJECT);
+  const body = encodeURIComponent(BODY);
+
+  switch (target) {
+    case 'gmail':
+      return `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`;
+    case 'outlook':
+      return `https://outlook.live.com/mail/0/deeplink/compose?to=${to}&subject=${subject}&body=${body}`;
+    default:
+      return `mailto:${address()}?subject=${subject}&body=${body}`;
+  }
+}
 
 /**
  * =====================================================================
  * BOTÓN DE EMAIL
  * ---------------------------------------------------------------------
- * Un `mailto:` a secas es una mala experiencia para quien usa Gmail o
- * Outlook en el navegador: o no pasa nada, o se le abre un programa de
- * escritorio que no usa. Este botón le deja elegir, y en los dos casos
- * web le abre el redactor con todo ya escrito.
+ * Un `mailto:` a secas es mala experiencia para quien usa Gmail u Outlook
+ * en el navegador: o no pasa nada, o se le abre un programa de escritorio
+ * que no usa. Aquí elige, y en los dos casos web se le abre el redactor
+ * con destinatario, asunto y cuerpo ya escritos.
+ *
+ * Las opciones son BOTONES, no enlaces, a propósito: así la dirección no
+ * viaja en ningún `href` del HTML y los rastreadores de spam no la
+ * encuentran. Se arma al pulsar.
+ *
+ * Contrapartida: se pierde el «abrir en pestaña nueva» con el clic
+ * central y el «copiar dirección del enlace». A cambio, el correo no se
+ * puede rastrear. Semánticamente un `<button>` es lo correcto: esto es
+ * una acción, no una navegación.
  * =====================================================================
  */
 export function EmailButton() {
@@ -69,7 +82,19 @@ export function EmailButton() {
     };
   }, [open]);
 
-  if (!config.email) return null;
+  const go = (target: TargetId) => {
+    const url = composeUrl(target);
+    setOpen(false);
+
+    if (target === 'mailto') {
+      // El programa de correo del sistema: nada de pestaña nueva, que
+      // dejaría una en blanco abierta.
+      window.location.href = url;
+      return;
+    }
+
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div ref={wrapperRef} className="relative inline-block">
@@ -80,7 +105,7 @@ export function EmailButton() {
         aria-haspopup="menu"
         data-magnetic
         data-cursor="link"
-        className="inline-flex items-center gap-3 rounded-md border border-background-border px-8 py-4 text-base font-semibold text-text-secondary transition-colors duration-300 hover:border-text-secondary hover:text-white"
+        className="inline-flex items-center gap-2 rounded border border-background-border px-8 py-3.5 text-[15px] font-medium text-text-secondary transition-colors duration-300 hover:border-text-secondary hover:text-white"
       >
         <svg
           viewBox="0 0 24 24"
@@ -90,40 +115,31 @@ export function EmailButton() {
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden="true"
-          className="h-5 w-5"
+          className="h-[18px] w-[18px]"
         >
           <rect x="2" y="4" width="20" height="16" rx="2" />
           <path d="m2 7 10 6 10-6" />
         </svg>
-        Escríbenos por email
+        Email
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute left-0 top-full z-20 mt-3 w-64 overflow-hidden rounded-md border border-background-border bg-background-card shadow-2xl"
+          className="absolute left-0 top-full z-30 mt-3 w-60 overflow-hidden rounded-md border border-background-border bg-background-card shadow-2xl"
         >
           {TARGETS.map((target) => (
-            <a
+            <button
               key={target.id}
+              type="button"
               role="menuitem"
-              href={target.href}
-              // Los redactores web se abren en pestaña nueva; `mailto:`
-              // no, porque abriría una pestaña en blanco antes de lanzar
-              // el programa de correo.
-              {...(target.external
-                ? { target: '_blank', rel: 'noopener noreferrer' }
-                : {})}
-              onClick={() => setOpen(false)}
+              onClick={() => go(target.id)}
               data-cursor="link"
-              className="block px-5 py-4 text-sm text-text-secondary transition-colors duration-200 hover:bg-white/5 hover:text-white"
+              className="block w-full px-5 py-4 text-left text-sm text-text-secondary transition-colors duration-200 hover:bg-white/5 hover:text-white"
             >
               {target.label}
-            </a>
+            </button>
           ))}
-          <p className="border-t border-background-border px-5 py-3 text-xs text-text-muted">
-            {config.email}
-          </p>
         </div>
       )}
     </div>

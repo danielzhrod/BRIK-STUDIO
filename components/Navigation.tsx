@@ -8,16 +8,13 @@ import { cn } from '@/lib/utils';
 
 /** Píxeles de scroll a partir de los cuales la barra se vuelve opaca. */
 const SCROLL_THRESHOLD = 50;
-/** Caracteres con los que se baraja el texto antes de asentarse. */
-const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 /**
  * =====================================================================
  * NAVEGACIÓN
  * ---------------------------------------------------------------------
  * La barra solo lleva el logo y un botón «Menú». Los enlaces viven en un
- * panel a pantalla completa con las secciones escritas enormes, que se
- * descifran letra a letra al abrirse.
+ * panel a pantalla completa con las secciones escritas enormes.
  *
  * Al abrirlo:
  *   · el fondo se difumina y la web se ve por detrás
@@ -169,23 +166,13 @@ export function Navigation() {
       >
         <nav className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-16" aria-label="Secciones">
           <ul className="flex flex-wrap items-baseline gap-x-10 gap-y-1">
-            {NAV_LINKS.map((link, index) => (
+            {NAV_LINKS.map((link) => (
               <li key={link.href}>
-                <MenuItem
-                  label={link.label}
-                  href={link.href}
-                  open={open}
-                  index={index}
-                  onClose={close}
-                />
+                <MenuItem label={link.label} href={link.href} onClose={close} />
               </li>
             ))}
           </ul>
 
-          <p className="mt-14 text-sm text-text-muted">
-            {config.whatsapp}
-            {config.email ? ` · ${config.email}` : ''}
-          </p>
         </nav>
       </div>
     </>
@@ -194,72 +181,19 @@ export function Navigation() {
 
 /**
  * Una sección del menú, escrita enorme.
- *
- * Al abrirse el panel el texto se descifra: arranca con letras al azar y
- * va fijando la palabra de izquierda a derecha. Es el efecto por el que
- * en la referencia se leen palabras raras a media animación.
+ * Sin animación de texto: los títulos grandes se leen desde el primer
+ * fotograma. El único movimiento es el cambio de color al pasar por
+ * encima, que acompaña a la burbuja del cursor.
  */
 function MenuItem({
   label,
   href,
-  open,
-  index,
   onClose,
 }: {
   label: string;
   href: string;
-  open: boolean;
-  index: number;
   onClose: () => void;
 }) {
-  const [text, setText] = useState(label.toUpperCase());
-
-  useEffect(() => {
-    const upper = label.toUpperCase();
-
-    if (!open) {
-      setText(upper);
-      return;
-    }
-
-    // Con "reducir movimiento" la palabra aparece ya legible.
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setText(upper);
-      return;
-    }
-
-    let interval: ReturnType<typeof setInterval> | undefined;
-    let frame = 0;
-
-    // Cada palabra empieza un poco después que la anterior.
-    const start = setTimeout(() => {
-      interval = setInterval(() => {
-        frame += 1;
-        // Un tercio de fotograma por letra: las de la izquierda se fijan
-        // antes, y la palabra se revela como si se descifrara.
-        const settled = frame / 3;
-
-        setText(
-          upper
-            .split('')
-            .map((char, position) =>
-              position < settled
-                ? char
-                : GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
-            )
-            .join(''),
-        );
-
-        if (settled >= upper.length && interval) clearInterval(interval);
-      }, 40);
-    }, index * 90);
-
-    return () => {
-      clearTimeout(start);
-      if (interval) clearInterval(interval);
-    };
-  }, [open, label, index]);
-
   return (
     <a
       href={href}
@@ -268,13 +202,7 @@ function MenuItem({
       className="block font-black uppercase leading-[1.02] tracking-[-0.03em] text-[#79839a] transition-colors duration-300 hover:text-white"
       style={{ fontSize: 'clamp(2.5rem, 8vw, 7rem)' }}
     >
-      {/*
-        El texto barajado es ilegible para un lector de pantalla —lo
-        deletrearía—, así que va el real en `sr-only` y el animado se
-        oculta a la accesibilidad.
-      */}
-      <span className="sr-only">{label}</span>
-      <span aria-hidden="true">{text}</span>
+      {label}
     </a>
   );
 }

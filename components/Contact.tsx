@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 
-import { config, whatsappUrl } from '@/data/config';
+import { whatsappUrl } from '@/data/config';
 import { EmailButton } from '@/components/EmailButton';
 import { gsap, MOTION, prefersReducedMotion, useIsomorphicLayoutEffect } from '@/lib/gsap';
 
@@ -77,9 +77,6 @@ export function Contact() {
           <EmailButton />
         </div>
 
-        <p data-anim className="invisible mt-8 text-sm text-text-muted">
-          {config.whatsapp}
-        </p>
 
       </div>
     </section>
