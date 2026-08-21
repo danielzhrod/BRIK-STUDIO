@@ -1,27 +1,23 @@
-import { FloatingWindow } from '@/components/FloatingWindow';
 import { Hero } from '@/components/Hero';
-import { Projects } from '@/components/Projects';
 import { Services } from '@/components/Services';
 import { About } from '@/components/About';
-import { Contact } from '@/components/Contact';
+import { MockupStage } from '@/components/MockupStage';
 
 /**
  * Home de una sola página.
  *
- * Las secciones son de altura normal y scrollean con normalidad, con su
- * contenido en la mitad izquierda. La ventana de navegador vive aparte,
- * en una capa fija sobre la mitad derecha, y va describiendo arcos entre
- * sección y sección sin desmontarse nunca.
+ * El orden termina en `MockupStage` a propósito: ahí la ventana Mac se
+ * ancla, gira entre fases enseñando el trabajo y acaba convirtiéndose en
+ * el formulario de contacto. Es el final del recorrido, así que todo lo
+ * demás va antes.
  */
 export default function HomePage() {
   return (
     <>
-      <FloatingWindow />
       <Hero />
-      <Projects />
       <Services />
       <About />
-      <Contact />
+      <MockupStage />
     </>
   );
 }

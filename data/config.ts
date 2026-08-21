@@ -42,8 +42,8 @@ export const whatsappUrl = `https://wa.me/${config.whatsappNumber}?text=${encode
 
 /** Enlaces del menú. El `href` apunta al `id` de cada <section>. */
 export const NAV_LINKS = [
-  { label: 'Proyectos', href: '#proyectos' },
   { label: 'Servicios', href: '#servicios' },
   { label: 'Estudio', href: '#estudio' },
+  { label: 'Proyectos', href: '#proyectos' },
   { label: 'Contacto', href: '#contacto' },
 ] as const;

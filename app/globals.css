@@ -122,6 +122,30 @@
     transition: border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  /*
+    VENTANA MAC del escenario con anclaje.
+
+    `backface-visibility: hidden` es imprescindible: sin ella, al pasar de
+    los 90 grados se vería la CARA DE ATRÁS de la ventana, con la captura
+    en espejo y el texto del revés. Con ella la ventana desaparece de
+    canto y reaparece ya con la imagen nueva, que es justo lo que hace
+    invisible el cambio.
+
+    `will-change` avisa al navegador de que esto se va a mover: le reserva
+    una capa propia y se ahorra repintar el resto en cada fotograma.
+  */
+  .mac-window {
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    will-change: transform;
+  }
+
+  /* Perspectiva del escenario: más corta que la general = fuga más marcada. */
+  .mockup-stage .perspective {
+    perspective: 2000px;
+  }
+
   /* Perspectiva para el giro 3D de la ventana. */
   .perspective {
     perspective: 1400px;
